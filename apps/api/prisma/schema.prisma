@@ -1,0 +1,171 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// Users (extended from Cognito)
+model User {
+  id          String   @id @default(uuid())
+  cognitoId   String   @unique @map("cognito_id")
+  email       String   @unique
+  username    String?  @unique
+  displayName String?  @map("display_name")
+  avatarUrl   String?  @map("avatar_url")
+  isPublic    Boolean  @default(false) @map("is_public")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  concerts  Concert[]
+  photos    Photo[]
+  tickets   Ticket[]
+  followers Follow[]  @relation("Following")
+  following Follow[]  @relation("Follower")
+
+  @@map("users")
+}
+
+// Artists (from Spotify/AI detection)
+model Artist {
+  id        String   @id @default(uuid())
+  name      String
+  spotifyId String?  @unique @map("spotify_id")
+  mbid      String?  @unique // MusicBrainz ID for Setlist.fm
+  imageUrl  String?  @map("image_url")
+  genres    String[] @default([])
+  createdAt DateTime @default(now()) @map("created_at")
+
+  concerts ConcertArtist[]
+
+  @@index([name])
+  @@map("artists")
+}
+
+// Venues
+model Venue {
+  id        String   @id @default(uuid())
+  name      String
+  city      String?
+  state     String?
+  country   String?
+  latitude  Decimal?
+  longitude Decimal?
+  capacity  Int?
+  createdAt DateTime @default(now()) @map("created_at")
+
+  concerts Concert[]
+
+  @@index([name])
+  @@index([city])
+  @@map("venues")
+}
+
+// Concerts (the core entity)
+model Concert {
+  id              String   @id @default(uuid())
+  userId          String   @map("user_id")
+  venueId         String?  @map("venue_id")
+  concertDate     DateTime @map("concert_date")
+  tourName        String?  @map("tour_name")
+  confidenceScore Decimal? @map("confidence_score") // AI confidence 0-1
+  notes           String?
+  isVerified      Boolean  @default(false) @map("is_verified")
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  user    User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  venue   Venue?          @relation(fields: [venueId], references: [id])
+  artists ConcertArtist[]
+  photos  Photo[]
+  setlist Setlist?
+  tickets Ticket[]
+
+  @@index([userId])
+  @@index([concertDate])
+  @@map("concerts")
+}
+
+// Junction: Concert <-> Artists (headliners, openers)
+model ConcertArtist {
+  concertId   String  @map("concert_id")
+  artistId    String  @map("artist_id")
+  isHeadliner Boolean @default(false) @map("is_headliner")
+  setOrder    Int?    @map("set_order")
+
+  concert Concert @relation(fields: [concertId], references: [id], onDelete: Cascade)
+  artist  Artist  @relation(fields: [artistId], references: [id], onDelete: Cascade)
+
+  @@id([concertId, artistId])
+  @@map("concert_artists")
+}
+
+// Photos (uploaded by users, analyzed by AI)
+model Photo {
+  id               String    @id @default(uuid())
+  concertId        String?   @map("concert_id")
+  userId           String    @map("user_id")
+  storagePath      String    @map("storage_path")
+  thumbnailPath    String?   @map("thumbnail_path")
+  originalFilename String?   @map("original_filename")
+  takenAt          DateTime? @map("taken_at")
+  locationLat      Decimal?  @map("location_lat")
+  locationLng      Decimal?  @map("location_lng")
+  aiAnalysis       Json?     @map("ai_analysis")
+  createdAt        DateTime  @default(now()) @map("created_at")
+
+  concert Concert? @relation(fields: [concertId], references: [id], onDelete: SetNull)
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([concertId])
+  @@index([userId])
+  @@map("photos")
+}
+
+// Setlists (from Setlist.fm)
+model Setlist {
+  id          String   @id @default(uuid())
+  concertId   String   @unique @map("concert_id")
+  setlistFmId String?  @map("setlist_fm_id")
+  songs       Json     @default("[]")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  concert Concert @relation(fields: [concertId], references: [id], onDelete: Cascade)
+
+  @@map("setlists")
+}
+
+// Tickets (from imports)
+model Ticket {
+  id             String   @id @default(uuid())
+  concertId      String?  @map("concert_id")
+  userId         String   @map("user_id")
+  source         String   // 'pdf', 'ticketmaster', 'axs', 'email'
+  sourceId       String?  @map("source_id")
+  pdfStoragePath String?  @map("pdf_storage_path")
+  purchasePrice  Decimal? @map("purchase_price")
+  section        String?
+  row            String?
+  seat           String?
+  rawData        Json?    @map("raw_data")
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  concert Concert? @relation(fields: [concertId], references: [id], onDelete: SetNull)
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("tickets")
+}
+
+// Social: Following
+model Follow {
+  followerId  String   @map("follower_id")
+  followingId String   @map("following_id")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  follower  User @relation("Follower", fields: [followerId], references: [id], onDelete: Cascade)
+  following User @relation("Following", fields: [followingId], references: [id], onDelete: Cascade)
+
+  @@id([followerId, followingId])
+  @@map("follows")
+}

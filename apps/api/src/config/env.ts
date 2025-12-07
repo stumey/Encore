@@ -23,14 +23,7 @@ const envSchema = z.object({
   S3_BUCKET_NAME: z.string(),
   S3_PRESIGNED_URL_EXPIRY: z.string().transform(Number).default('900'), // 15 minutes
 
-  // Database
-  DB_HOST: z.string(),
-  DB_PORT: z.string().transform(Number).default('5432'),
-  DB_NAME: z.string(),
-  DB_USER: z.string(),
-  DB_PASSWORD: z.string(),
-  DB_MAX_CONNECTIONS: z.string().transform(Number).default('20'),
-  DB_SSL: z.string().transform((val) => val === 'true').default('true'),
+  // Database (Prisma uses DATABASE_URL from prisma.config.ts)
 
   // External APIs
   CLAUDE_API_KEY: z.string(),
