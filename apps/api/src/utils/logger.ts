@@ -77,7 +77,7 @@ if (NODE_ENV === 'development') {
       filename: path.join(logsDir, 'app-%DATE%.log'),
       datePattern: 'YYYY-MM-DD',
       maxSize: '20m',
-      maxDays: '14d',
+      maxFiles: '14d',
       format: customFormat,
       level: LOG_LEVEL,
     })
@@ -89,7 +89,7 @@ if (NODE_ENV === 'development') {
       filename: path.join(logsDir, 'error-%DATE%.log'),
       datePattern: 'YYYY-MM-DD',
       maxSize: '20m',
-      maxDays: '30d',
+      maxFiles: '30d',
       level: 'error',
       format: customFormat,
     })
@@ -116,7 +116,7 @@ const logger = winston.createLogger({
       filename: path.join(logsDir, 'exceptions-%DATE%.log'),
       datePattern: 'YYYY-MM-DD',
       maxSize: '20m',
-      maxDays: '30d',
+      maxFiles: '30d',
       format: customFormat,
     }),
   ],
@@ -125,7 +125,7 @@ const logger = winston.createLogger({
       filename: path.join(logsDir, 'rejections-%DATE%.log'),
       datePattern: 'YYYY-MM-DD',
       maxSize: '20m',
-      maxDays: '30d',
+      maxFiles: '30d',
       format: customFormat,
     }),
   ],
@@ -205,4 +205,3 @@ export class Logger {
  * Export singleton instance and logger class
  */
 export default logger;
-export { Logger };
