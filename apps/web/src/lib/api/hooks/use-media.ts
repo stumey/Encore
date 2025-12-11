@@ -1,0 +1,144 @@
+'use client';
+
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { apiClient } from '../client';
+import type {
+  MediaWithUrls,
+  ApiResponse,
+  PaginatedResponse,
+  MediaType,
+} from '@encore/shared';
+import type { CreateMediaInput } from '@encore/shared';
+
+interface MediaFilters {
+  concertId?: string;
+  mediaType?: MediaType;
+}
+
+interface UploadUrlResponse {
+  uploadUrl: string;
+  storagePath: string;
+}
+
+const MEDIA_KEYS = {
+  all: ['media'] as const,
+  lists: () => [...MEDIA_KEYS.all, 'list'] as const,
+  list: (page: number, limit: number, filters?: MediaFilters) =>
+    [...MEDIA_KEYS.lists(), { page, limit, filters }] as const,
+  details: () => [...MEDIA_KEYS.all, 'detail'] as const,
+  detail: (id: string) => [...MEDIA_KEYS.details(), id] as const,
+};
+
+/**
+ * Get paginated list of media
+ * GET /media?page=1&limit=20&concertId=...&mediaType=...
+ */
+export function useMedia(
+  page: number = 1,
+  limit: number = 20,
+  filters?: MediaFilters
+) {
+  return useQuery({
+    queryKey: MEDIA_KEYS.list(page, limit, filters),
+    queryFn: async () => {
+      const params = new URLSearchParams({
+        page: page.toString(),
+        limit: limit.toString(),
+      });
+
+      if (filters?.concertId) {
+        params.append('concertId', filters.concertId);
+      }
+      if (filters?.mediaType) {
+        params.append('mediaType', filters.mediaType);
+      }
+
+      const response = await apiClient.get<PaginatedResponse<MediaWithUrls>>(
+        `/media?${params.toString()}`
+      );
+      return response;
+    },
+  });
+}
+
+/**
+ * Get pre-signed upload URL for media
+ * POST /media/upload-url
+ */
+export function useUploadUrl() {
+  return useMutation({
+    mutationFn: async (data: { contentType: string; filename?: string }) => {
+      const response = await apiClient.post<ApiResponse<UploadUrlResponse>>(
+        '/media/upload-url',
+        data
+      );
+      return response.data;
+    },
+  });
+}
+
+/**
+ * Create media record after upload
+ * POST /media
+ */
+export function useCreateMedia() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (data: CreateMediaInput) => {
+      const response = await apiClient.post<ApiResponse<MediaWithUrls>>(
+        '/media',
+        data
+      );
+      return response.data;
+    },
+    onSuccess: () => {
+      // Invalidate media lists to refetch
+      queryClient.invalidateQueries({ queryKey: MEDIA_KEYS.lists() });
+    },
+  });
+}
+
+/**
+ * Trigger AI analysis on media
+ * POST /media/:id/analyze
+ */
+export function useAnalyzeMedia() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const response = await apiClient.post<ApiResponse<MediaWithUrls>>(
+        `/media/${id}/analyze`
+      );
+      return response.data;
+    },
+    onSuccess: (data) => {
+      // Update cached detail
+      queryClient.setQueryData(MEDIA_KEYS.detail(data.id), data);
+      // Invalidate lists
+      queryClient.invalidateQueries({ queryKey: MEDIA_KEYS.lists() });
+    },
+  });
+}
+
+/**
+ * Delete media
+ * DELETE /media/:id
+ */
+export function useDeleteMedia() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (id: string) => {
+      await apiClient.delete(`/media/${id}`);
+      return id;
+    },
+    onSuccess: (id) => {
+      // Invalidate lists
+      queryClient.invalidateQueries({ queryKey: MEDIA_KEYS.lists() });
+      // Remove from cache
+      queryClient.removeQueries({ queryKey: MEDIA_KEYS.detail(id) });
+    },
+  });
+}
