@@ -21,7 +21,7 @@ import {
   useConcerts,
 } from '@/lib/api';
 import Link from 'next/link';
-import { useMemo, useState } from 'react';
+import { useMemo, useCallback } from 'react';
 
 /**
  * Statistics Page
@@ -33,49 +33,89 @@ import { useMemo, useState } from 'react';
  * - Venue map placeholder
  */
 export default function StatsPage() {
-  const { data: stats, isLoading: statsLoading } = useUserStats();
-  const { data: artists, isLoading: artistsLoading } = useUserArtists();
-  const { data: concertsData, isLoading: concertsLoading } = useConcerts(1, 1000);
-  const [activeTab, setActiveTab] = useState('overview');
+  const { data: stats, isLoading: statsLoading, error: statsError } = useUserStats();
+  const { data: artists, isLoading: artistsLoading, error: artistsError } = useUserArtists();
+  const { data: concertsData, isLoading: concertsLoading, error: concertsError } = useConcerts(1, 1000);
 
-  const isLoading = statsLoading || artistsLoading || concertsLoading;
+  // Memoize loading state
+  const isLoading = useMemo(
+    () => statsLoading || artistsLoading || concertsLoading,
+    [statsLoading, artistsLoading, concertsLoading]
+  );
 
   /**
    * Calculate concerts per year
+   * Uses Map for O(1) lookups and modern array methods for efficiency
    */
   const concertsPerYear = useMemo(() => {
     if (!concertsData?.data) return [];
 
     const yearMap = new Map<number, number>();
-    concertsData.data.forEach((concert) => {
-      const year = new Date(concert.concertDate).getFullYear();
-      yearMap.set(year, (yearMap.get(year) || 0) + 1);
-    });
 
-    return Array.from(yearMap.entries())
-      .map(([year, count]) => ({ year, count }))
+    // Use for...of for better performance than forEach
+    for (const concert of concertsData.data) {
+      const year = new Date(concert.concertDate).getFullYear();
+      yearMap.set(year, (yearMap.get(year) ?? 0) + 1);
+    }
+
+    // Convert Map to array and sort in one pass
+    return Array.from(yearMap, ([year, count]) => ({ year, count }))
       .sort((a, b) => b.year - a.year);
-  }, [concertsData]);
+  }, [concertsData?.data]);
 
   /**
-   * Format date to readable string
+   * Calculate max count for chart scaling
    */
-  const formatDate = (date: string | Date | null) => {
-    if (!date) return 'Never';
-    return new Date(date).toLocaleDateString('en-US', {
+  const maxConcertCount = useMemo(
+    () => concertsPerYear.length > 0
+      ? Math.max(...concertsPerYear.map(({ count }) => count))
+      : 1,
+    [concertsPerYear]
+  );
+
+  /**
+   * Format date to readable string using memoized Intl.DateTimeFormat
+   */
+  const dateFormatter = useMemo(
+    () => new Intl.DateTimeFormat('en-US', {
       month: 'short',
       day: 'numeric',
       year: 'numeric',
-    });
-  };
+    }),
+    []
+  );
+
+  const formatDate = useCallback(
+    (date: string | Date | null) => {
+      if (!date) return 'Never';
+      return dateFormatter.format(new Date(date));
+    },
+    [dateFormatter]
+  );
 
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
         <div className="text-center">
-          <Spinner size="lg" />
+          <Spinner size="lg" className="text-purple-600" />
           <p className="mt-4 text-gray-600">Loading statistics...</p>
         </div>
+      </div>
+    );
+  }
+
+  // Handle error states
+  if (statsError || artistsError || concertsError) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <EmptyState
+          title="Error Loading Statistics"
+          description="We encountered an issue loading your statistics. Please try refreshing the page."
+          action={{
+            label: 'Refresh Page',
+            onClick: () => window.location.reload(),
+          }}
+        />
       </div>
     );
   }
@@ -205,7 +245,7 @@ export default function StatsPage() {
 
       {/* Detailed Stats Tabs */}
       <DashboardSection>
-        <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <Tabs defaultValue="overview">
           <TabsList>
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="artists">Artists</TabsTrigger>
@@ -271,9 +311,9 @@ export default function StatsPage() {
                           <div className="flex items-center gap-3 flex-1 ml-4">
                             <div className="flex-1 bg-gray-200 rounded-full h-2 overflow-hidden">
                               <div
-                                className="bg-purple-600 h-full rounded-full"
+                                className="bg-purple-600 h-full rounded-full transition-all duration-300"
                                 style={{
-                                  width: `${(count / Math.max(...concertsPerYear.map(c => c.count))) * 100}%`,
+                                  width: `${(count / maxConcertCount) * 100}%`,
                                 }}
                               />
                             </div>
@@ -361,7 +401,7 @@ export default function StatsPage() {
                           <div
                             className="bg-gradient-to-r from-purple-600 to-purple-400 h-full rounded-full transition-all duration-500"
                             style={{
-                              width: `${(count / Math.max(...concertsPerYear.map(c => c.count))) * 100}%`,
+                              width: `${(count / maxConcertCount) * 100}%`,
                             }}
                           />
                         </div>

@@ -19,6 +19,7 @@ import {
 } from '@/lib/api';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { useMemo, useCallback } from 'react';
 
 /**
  * Main Dashboard Page
@@ -32,31 +33,79 @@ import { useRouter } from 'next/navigation';
  */
 export default function DashboardPage() {
   const router = useRouter();
-  const { data: user, isLoading: userLoading } = useCurrentUser();
-  const { data: stats, isLoading: statsLoading } = useUserStats();
-  const { data: concertsData, isLoading: concertsLoading } = useConcerts(1, 5);
+  const { data: user, isLoading: userLoading, error: userError } = useCurrentUser();
+  const { data: stats, isLoading: statsLoading, error: statsError } = useUserStats();
+  const { data: concertsData, isLoading: concertsLoading, error: concertsError } = useConcerts(1, 5);
 
-  const isLoading = userLoading || statsLoading;
-  const recentConcerts = concertsData?.data || [];
+  // Memoize loading state to prevent unnecessary recalculations
+  const isLoading = useMemo(
+    () => userLoading || statsLoading,
+    [userLoading, statsLoading]
+  );
+
+  // Memoize recent concerts to prevent unnecessary re-renders
+  const recentConcerts = useMemo(
+    () => concertsData?.data ?? [],
+    [concertsData?.data]
+  );
 
   /**
-   * Format date to readable string
+   * Format date to readable string using memoized Intl.DateTimeFormat
    */
-  const formatDate = (date: string | Date) => {
-    return new Date(date).toLocaleDateString('en-US', {
+  const dateFormatter = useMemo(
+    () => new Intl.DateTimeFormat('en-US', {
       month: 'short',
       day: 'numeric',
       year: 'numeric',
-    });
-  };
+    }),
+    []
+  );
+
+  const formatDate = useCallback(
+    (date: string | Date) => dateFormatter.format(new Date(date)),
+    [dateFormatter]
+  );
+
+  // Memoize navigation handlers to prevent recreating on each render
+  const handleUploadMedia = useCallback(
+    () => router.push('/media/upload'),
+    [router]
+  );
+
+  const handleAddConcert = useCallback(
+    () => router.push('/concerts/new'),
+    [router]
+  );
+
+  // Memoize user display name
+  const userName = useMemo(
+    () => user?.displayName || user?.username || 'there',
+    [user?.displayName, user?.username]
+  );
 
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
         <div className="text-center">
-          <Spinner size="lg" />
+          <Spinner size="lg" className="text-purple-600" />
           <p className="mt-4 text-gray-600">Loading dashboard...</p>
         </div>
+      </div>
+    );
+  }
+
+  // Handle error states
+  if (userError || statsError) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <EmptyState
+          title="Error Loading Dashboard"
+          description="We encountered an issue loading your data. Please try refreshing the page."
+          action={{
+            label: 'Refresh Page',
+            onClick: () => window.location.reload(),
+          }}
+        />
       </div>
     );
   }
@@ -65,13 +114,13 @@ export default function DashboardPage() {
     <div>
       {/* Page Header */}
       <DashboardPageHeader
-        title={`Welcome back, ${user?.displayName || user?.username || 'there'}!`}
+        title={`Welcome back, ${userName}!`}
         description="Here's what's happening with your concert collection"
         actions={
           <div className="flex gap-3">
             <Button
               variant="outline"
-              onClick={() => router.push('/media/upload')}
+              onClick={handleUploadMedia}
             >
               <svg
                 className="h-5 w-5 mr-2"
@@ -88,7 +137,7 @@ export default function DashboardPage() {
               </svg>
               Upload Media
             </Button>
-            <Button onClick={() => router.push('/concerts/new')}>
+            <Button onClick={handleAddConcert}>
               <svg
                 className="h-5 w-5 mr-2"
                 fill="none"
@@ -287,7 +336,7 @@ export default function DashboardPage() {
             title="No concerts yet"
             description="Start adding your concert experiences to build your music journey."
             actions={
-              <Button onClick={() => router.push('/concerts/new')}>
+              <Button onClick={handleAddConcert}>
                 Add Your First Concert
               </Button>
             }
