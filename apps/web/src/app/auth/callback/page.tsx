@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/lib/auth';
 
@@ -10,7 +10,7 @@ import { useAuth } from '@/lib/auth';
  * Handles OAuth callbacks from social login providers (Google, Facebook, etc.)
  * This page processes the authentication code and redirects to the appropriate page.
  */
-export default function CallbackPage() {
+function CallbackHandler() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { refreshUser, isAuthenticated } = useAuth();
@@ -116,5 +116,20 @@ export default function CallbackPage() {
         <p className="mt-2 text-sm text-gray-500">Please wait a moment</p>
       </div>
     </div>
+  );
+}
+
+export default function CallbackPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-50 via-white to-purple-50">
+        <div className="text-center">
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+          <h2 className="mt-4 text-xl font-semibold text-gray-900">Loading...</h2>
+        </div>
+      </div>
+    }>
+      <CallbackHandler />
+    </Suspense>
   );
 }
