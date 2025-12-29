@@ -148,11 +148,6 @@ cd apps/api && npm run build
 - **Database:** Railway PostgreSQL or AWS RDS
 - **Storage:** AWS S3 + CloudFront CDN
 
-## Pricing
-
-- **Free:** 25 photos/month with AI analysis
-- **Premium:** $4.99/month - unlimited photos, advanced stats, priority processing
-
 ## Documentation
 
 For detailed documentation, see [CLAUDE.md](./CLAUDE.md) - comprehensive guide for developers and AI coding agents.
