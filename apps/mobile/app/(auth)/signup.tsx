@@ -24,14 +24,19 @@ export default function SignupScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [verificationCode, setVerificationCode] = useState('');
+  const [needsVerification, setNeedsVerification] = useState(false);
   const [errors, setErrors] = useState<{
     name?: string;
     email?: string;
     password?: string;
     confirmPassword?: string;
+    verificationCode?: string;
   }>({});
 
   const signUp = useAuth((state) => state.signUp);
+  const signIn = useAuth((state) => state.signIn);
+  const confirmSignUp = useAuth((state) => state.confirmSignUp);
   const isLoading = useAuth((state) => state.isLoading);
 
   const validate = () => {
@@ -68,11 +73,7 @@ export default function SignupScreen() {
 
     try {
       await signUp({ email, password, name });
-      Alert.alert(
-        'Success',
-        'Account created successfully! Please check your email to verify your account.',
-        [{ text: 'OK', onPress: () => router.push('/(auth)/login') }]
-      );
+      setNeedsVerification(true);
     } catch (error) {
       Alert.alert(
         'Signup Failed',
@@ -80,6 +81,75 @@ export default function SignupScreen() {
       );
     }
   };
+
+  const handleVerification = async () => {
+    if (!verificationCode) {
+      setErrors({ verificationCode: 'Verification code is required' });
+      return;
+    }
+
+    try {
+      await confirmSignUp(email, verificationCode);
+
+      // Automatically sign in the user after successful verification
+      await signIn({ email, password });
+
+      // Navigation will happen automatically via auth state change
+    } catch (error) {
+      Alert.alert(
+        'Verification Failed',
+        error instanceof Error ? error.message : 'An error occurred'
+      );
+    }
+  };
+
+  if (needsVerification) {
+    return (
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={[styles.container, { backgroundColor: colors.background }]}
+      >
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          keyboardShouldPersistTaps="handled"
+        >
+          <View style={styles.header}>
+            <Text style={[styles.title, { color: colors.text }]}>Verify Your Email</Text>
+            <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
+              We sent a verification code to {email}. Enter it below to verify your account and get started.
+            </Text>
+          </View>
+
+          <View style={styles.form}>
+            <Input
+              label="Verification Code"
+              placeholder="Enter code"
+              value={verificationCode}
+              onChangeText={setVerificationCode}
+              keyboardType="number-pad"
+              autoCapitalize="none"
+              error={errors.verificationCode}
+            />
+
+            <Button
+              title="Verify and Continue"
+              onPress={handleVerification}
+              loading={isLoading}
+              style={styles.signupButton}
+            />
+
+            <View style={styles.footer}>
+              <Button
+                title="Back to Sign Up"
+                onPress={() => setNeedsVerification(false)}
+                variant="ghost"
+              />
+            </View>
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    );
+  }
 
   return (
     <KeyboardAvoidingView
