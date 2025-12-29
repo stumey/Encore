@@ -25,11 +25,11 @@ const envSchema = z.object({
 
   // Database (Prisma uses DATABASE_URL from prisma.config.ts)
 
-  // External APIs
-  CLAUDE_API_KEY: z.string(),
-  SETLIST_FM_API_KEY: z.string(),
-  SPOTIFY_CLIENT_ID: z.string(),
-  SPOTIFY_CLIENT_SECRET: z.string(),
+  // External APIs (optional for local development)
+  CLAUDE_API_KEY: z.string().optional(),
+  SETLIST_FM_API_KEY: z.string().optional(),
+  SPOTIFY_CLIENT_ID: z.string().optional(),
+  SPOTIFY_CLIENT_SECRET: z.string().optional(),
 
   // Logging
   LOG_LEVEL: z.enum(['error', 'warn', 'info', 'debug']).default('info'),
