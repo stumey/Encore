@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react';
 import { Modal } from '@/components/ui/modal';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Spinner } from '@/components/ui/spinner';
 import type { MediaWithUrls } from '@encore/shared';
 import { AiAnalysisCard } from './ai-analysis-card';
 
