@@ -13,8 +13,9 @@ import { useAuth } from '@/lib/auth';
  */
 export default function SignUpPage() {
   const router = useRouter();
-  const { signUp, confirmSignUp, isLoading } = useAuth();
+  const { signUp, signIn, confirmSignUp, isLoading } = useAuth();
 
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -48,7 +49,7 @@ export default function SignUpPage() {
     setIsSubmitting(true);
 
     // Client-side validation
-    if (!email || !password || !confirmPassword) {
+    if (!name || !email || !password || !confirmPassword) {
       setError('Please fill in all fields');
       setIsSubmitting(false);
       return;
@@ -74,7 +75,7 @@ export default function SignUpPage() {
     }
 
     try {
-      const result = await signUp(email, password);
+      const result = await signUp(email, password, { name });
 
       if (!result.isSignUpComplete) {
         setNeedsVerification(true);
@@ -110,7 +111,12 @@ export default function SignUpPage() {
 
     try {
       await confirmSignUp(email, verificationCode);
-      router.push('/auth/signin?message=Email verified! Please sign in');
+
+      // Automatically sign in the user after successful verification
+      await signIn(email, password);
+
+      // Redirect to dashboard
+      router.push('/dashboard');
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to verify email';
 
@@ -135,7 +141,7 @@ export default function SignUpPage() {
               Verify your email
             </h2>
             <p className="mt-2 text-center text-sm text-gray-600">
-              We sent a verification code to <strong>{email}</strong>
+              We sent a verification code to <strong>{email}</strong>. Enter it below to verify your account and get started.
             </p>
           </div>
 
@@ -190,7 +196,7 @@ export default function SignUpPage() {
                   disabled={isSubmitting}
                   className="w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:bg-indigo-400 disabled:cursor-not-allowed transition-colors"
                 >
-                  {isSubmitting ? 'Verifying...' : 'Verify Email'}
+                  {isSubmitting ? 'Verifying and signing in...' : 'Verify and Continue'}
                 </button>
               </div>
 
@@ -253,6 +259,26 @@ export default function SignUpPage() {
                 </div>
               </div>
             )}
+
+            <div>
+              <label htmlFor="name" className="block text-sm font-medium text-gray-700">
+                Full Name
+              </label>
+              <div className="mt-1">
+                <input
+                  id="name"
+                  name="name"
+                  type="text"
+                  autoComplete="name"
+                  required
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  disabled={isSubmitting || isLoading}
+                  className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm disabled:bg-gray-100 disabled:cursor-not-allowed transition-colors"
+                  placeholder="John Doe"
+                />
+              </div>
+            </div>
 
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700">
