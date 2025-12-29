@@ -152,10 +152,6 @@ cd apps/api && npm run build
 
 For detailed documentation, see [CLAUDE.md](./CLAUDE.md) - comprehensive guide for developers and AI coding agents.
 
-## License
-
-Private and proprietary. All rights reserved.
-
 ---
 
 Built with ❤️ for music lovers
