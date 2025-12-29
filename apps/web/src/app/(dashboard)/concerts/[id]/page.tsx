@@ -34,7 +34,7 @@ export default function ConcertDetailPage({ params }: ConcertDetailPageProps) {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   const { data: concert, isLoading: concertLoading, error: concertError } = useConcert(id);
-  const { data: setlist, isLoading: setlistLoading } = useSetlist(id);
+  const { data: setlist } = useSetlist(id);
   const { data: mediaData, isLoading: mediaLoading } = useMedia(1, 50, { concertId: id });
 
   const deleteConcert = useDeleteConcert();

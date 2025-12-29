@@ -125,7 +125,7 @@ export class ApiClient {
         throw new ApiError(errorMessage, response.status, errorBody);
       }
 
-      return isJson ? await response.json() : await response.text();
+      return (isJson ? await response.json() : await response.text()) as T;
     } catch (error) {
       if (error instanceof ApiError) {
         throw error;

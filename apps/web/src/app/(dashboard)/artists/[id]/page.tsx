@@ -3,14 +3,14 @@
 import { useParams, useRouter } from 'next/navigation';
 import { useMemo, useCallback } from 'react';
 import { useArtist, useArtistMedia } from '@/lib/api';
-import { DashboardPageHeader, DashboardSection } from '@/components/layout';
+import { DashboardSection } from '@/components/layout';
 import {
   Avatar,
   Badge,
   Button,
   Card,
-  CardHeader,
-  CardTitle,
+  
+  
   CardContent,
   Spinner,
   EmptyState,
@@ -331,7 +331,7 @@ export default function ArtistDetailPage() {
                     key={media.id}
                     className="aspect-square rounded-lg overflow-hidden bg-gray-200 hover:opacity-90 transition-opacity cursor-pointer"
                   >
-                    {media.mediaType === 'image' ? (
+                    {media.mediaType === 'photo' ? (
                       <img
                         src={media.thumbnailUrl || media.downloadUrl}
                         alt="Concert media"

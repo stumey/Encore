@@ -6,7 +6,7 @@ import { useMedia, useDeleteMedia } from '@/lib/api/hooks/use-media';
 import { MediaGrid } from '@/components/media/media-grid';
 import { MediaModal } from '@/components/media/media-modal';
 import { Button } from '@/components/ui/button';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Spinner } from '@/components/ui/spinner';
 import type { MediaWithUrls } from '@encore/shared';

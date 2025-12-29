@@ -3,8 +3,8 @@
 import { DashboardPageHeader, DashboardSection } from '@/components/layout';
 import {
   Card,
-  CardHeader,
-  CardTitle,
+  
+  
   CardContent,
   Button,
   Badge,
@@ -35,7 +35,7 @@ export default function DashboardPage() {
   const router = useRouter();
   const { data: user, isLoading: userLoading, error: userError } = useCurrentUser();
   const { data: stats, isLoading: statsLoading, error: statsError } = useUserStats();
-  const { data: concertsData, isLoading: concertsLoading, error: concertsError } = useConcerts(1, 5);
+  const { data: concertsData, isLoading: concertsLoading } = useConcerts(1, 5);
 
   // Memoize loading state to prevent unnecessary recalculations
   const isLoading = useMemo(

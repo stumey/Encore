@@ -98,7 +98,7 @@ export default function NewConcertPage() {
 
     try {
       const concert = await createConcert.mutateAsync({
-        concertDate,
+        concertDate: new Date(concertDate),
         venueId: selectedVenue?.id,
         tourName: tourName || undefined,
         notes: notes || undefined,

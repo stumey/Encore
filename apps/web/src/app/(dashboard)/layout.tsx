@@ -132,7 +132,7 @@ export default function DashboardLayoutWrapper({
           ? {
               name: userProfile.displayName || userProfile.username || 'User',
               email: userProfile.email || '',
-              avatar: userProfile.avatarUrl,
+              avatar: userProfile.avatarUrl || undefined,
             }
           : undefined,
         onLogout: handleSignOut,
