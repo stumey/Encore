@@ -5,13 +5,14 @@ import type { SidebarItem } from '@/components/layout';
 import { useAuth } from '@/lib/auth';
 import { useCurrentUser } from '@/lib/api';
 import { useRouter } from 'next/navigation';
-import { ReactNode } from 'react';
+import { ReactNode, useEffect } from 'react';
 
 /**
  * Dashboard Layout Wrapper
  *
  * Provides consistent navigation and layout for all dashboard pages.
  * Uses DashboardLayout component with sidebar navigation and user profile.
+ * Includes client-side route protection - redirects to sign-in if not authenticated.
  */
 export default function DashboardLayoutWrapper({
   children,
@@ -19,8 +20,29 @@ export default function DashboardLayoutWrapper({
   children: ReactNode;
 }) {
   const router = useRouter();
-  const { signOut } = useAuth();
+  const { isAuthenticated, isLoading, signOut } = useAuth();
   const { data: userProfile } = useCurrentUser();
+
+  // Redirect to sign-in if not authenticated
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated) {
+      router.push('/auth/signin');
+    }
+  }, [isAuthenticated, isLoading, router]);
+
+  // Show loading spinner while checking authentication
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+      </div>
+    );
+  }
+
+  // Don't render if not authenticated (redirect is in progress)
+  if (!isAuthenticated) {
+    return null;
+  }
 
   const handleSignOut = async () => {
     try {

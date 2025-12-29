@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, FormEvent } from 'react';
+import { useState, FormEvent, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/lib/auth';
@@ -13,7 +13,7 @@ import { useAuth } from '@/lib/auth';
  */
 export default function SignUpPage() {
   const router = useRouter();
-  const { signUp, signIn, confirmSignUp, isLoading } = useAuth();
+  const { signUp, signIn, confirmSignUp, isAuthenticated, isLoading } = useAuth();
 
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -23,6 +23,13 @@ export default function SignUpPage() {
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [needsVerification, setNeedsVerification] = useState(false);
+
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (isAuthenticated && !isLoading && !needsVerification) {
+      router.push('/dashboard');
+    }
+  }, [isAuthenticated, isLoading, needsVerification, router]);
 
   const validatePassword = (pass: string): string | null => {
     if (pass.length < 8) {

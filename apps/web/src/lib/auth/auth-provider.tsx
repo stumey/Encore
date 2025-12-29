@@ -77,7 +77,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // Configure Amplify on mount
   useEffect(() => {
     try {
-      Amplify.configure(amplifyConfig, { ssr: true });
+      Amplify.configure(amplifyConfig);
     } catch (err) {
       console.error('Failed to configure Amplify:', err);
       setError(err instanceof Error ? err.message : 'Failed to configure authentication');

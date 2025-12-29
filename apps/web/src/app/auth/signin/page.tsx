@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, FormEvent, Suspense } from 'react';
+import { useState, FormEvent, Suspense, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/lib/auth';
@@ -14,7 +14,7 @@ import { useAuth } from '@/lib/auth';
 function SignInForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { signIn, isLoading } = useAuth();
+  const { signIn, isAuthenticated, isLoading } = useAuth();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -22,6 +22,13 @@ function SignInForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const callbackUrl = searchParams.get('callbackUrl') || '/dashboard';
+
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (isAuthenticated && !isLoading) {
+      router.push('/dashboard');
+    }
+  }, [isAuthenticated, isLoading, router]);
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
