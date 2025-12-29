@@ -46,12 +46,7 @@
       [
         "expo-image-picker",
         {
-          "photosPermission": "Encore needs access to your photos to upload concert media."
-        }
-      ],
-      [
-        "expo-camera",
-        {
+          "photosPermission": "Encore needs access to your photos to upload concert media.",
           "cameraPermission": "Encore needs access to your camera to capture concert moments."
         }
       ]
