@@ -146,13 +146,28 @@ export default function DashboardLayoutWrapper({
     },
   ];
 
+  // Derive a friendly display name from email if no name is set
+  const getDisplayName = () => {
+    if (userProfile?.displayName) return userProfile.displayName;
+    if (userProfile?.username) return userProfile.username;
+    if (userProfile?.email) {
+      // Extract name from email: "stefan.tumey@gmail.com" -> "Stefan Tumey"
+      const namePart = userProfile.email.split('@')[0];
+      return namePart
+        .split(/[._-]/)
+        .map(part => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
+        .join(' ');
+    }
+    return 'User';
+  };
+
   return (
     <DashboardLayout
       navbarProps={{
         logoHref: '/dashboard',
         user: userProfile
           ? {
-              name: userProfile.displayName || userProfile.username || 'User',
+              name: getDisplayName(),
               email: userProfile.email || '',
               avatar: userProfile.avatarUrl || undefined,
             }
