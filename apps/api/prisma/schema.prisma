@@ -27,11 +27,11 @@ model User {
   @@map("users")
 }
 
-// Artists (from Spotify/AI detection)
+// Artists (from Genius/AI detection)
 model Artist {
   id        String   @id @default(uuid())
   name      String
-  spotifyId String?  @unique @map("spotify_id")
+  geniusId  String?  @unique @map("genius_id")
   mbid      String?  @unique // MusicBrainz ID for Setlist.fm
   imageUrl  String?  @map("image_url")
   genres    String[] @default([])

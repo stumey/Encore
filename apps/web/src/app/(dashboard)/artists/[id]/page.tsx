@@ -21,7 +21,7 @@ import type { ArtistWithCount } from '@encore/shared';
  * Artist Detail Page
  *
  * Displays comprehensive information about a specific artist:
- * - Artist header with image, name, genres, Spotify link
+ * - Artist header with image, name, genres, Genius link
  * - Statistics (times seen, first/last seen dates)
  * - List of concerts where the user saw this artist
  * - Media gallery from all concerts
@@ -101,11 +101,11 @@ export default function ArtistDetailPage() {
     router.push(`/venues/${venueId}`);
   }, [router]);
 
-  const handleSpotifyClick = useCallback(() => {
-    if (artistData?.spotifyId) {
-      window.open(`https://open.spotify.com/artist/${artistData.spotifyId}`, '_blank');
+  const handleGeniusClick = useCallback(() => {
+    if (artistData?.geniusId) {
+      window.open(`https://genius.com/artists/${artistData.geniusId}`, '_blank');
     }
-  }, [artistData?.spotifyId]);
+  }, [artistData?.geniusId]);
 
   const handleSetlistFmClick = useCallback(() => {
     if (artistData?.mbid) {
@@ -187,16 +187,16 @@ export default function ArtistDetailPage() {
 
               {/* Action Buttons */}
               <div className="flex gap-3 flex-wrap justify-center md:justify-start">
-                {artistData.spotifyId && (
+                {artistData.geniusId && (
                   <Button
                     variant="primary"
                     size="sm"
-                    onClick={handleSpotifyClick}
+                    onClick={handleGeniusClick}
                   >
                     <svg className="h-4 w-4 mr-2" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/>
+                      <path d="M12 0C5.373 0 0 5.373 0 12c0 6.627 5.373 12 12 12s12-5.373 12-12c0-6.627-5.373-12-12-12zm-1.5 18.25l-.083-.005c-1.125-.075-2.123-.667-2.658-1.578-.535-.911-.532-2.03.006-2.981l2.396-4.238c.196-.347.628-.466.963-.265.335.201.448.642.252.989l-2.396 4.238c-.269.476-.271 1.035-.003 1.49.268.455.744.753 1.27.793.526.041 1.042-.184 1.375-.597l3.75-4.688c.232-.29.655-.337.945-.105.29.232.337.655.105.945l-3.75 4.688c-.556.694-1.394 1.12-2.293 1.165-.026.001-.053.002-.079.002-.379 0-.751-.078-1.094-.228z"/>
                     </svg>
-                    Open in Spotify
+                    View on Genius
                   </Button>
                 )}
 

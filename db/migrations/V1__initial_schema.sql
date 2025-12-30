@@ -19,7 +19,8 @@ CREATE TABLE profiles (
 CREATE TABLE artists (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   name VARCHAR(255) NOT NULL,
-  spotify_id VARCHAR(50) UNIQUE,
+  genius_id VARCHAR(50) UNIQUE,
+  mbid VARCHAR(50) UNIQUE,
   image_url TEXT,
   genres TEXT[],
   created_at TIMESTAMPTZ DEFAULT NOW(),
@@ -118,7 +119,8 @@ CREATE INDEX idx_concerts_artist_id ON concerts(artist_id);
 CREATE INDEX idx_photos_user_id ON photos(user_id);
 CREATE INDEX idx_photos_concert_id ON photos(concert_id);
 CREATE INDEX idx_artists_name ON artists(name);
-CREATE INDEX idx_artists_spotify_id ON artists(spotify_id);
+CREATE INDEX idx_artists_genius_id ON artists(genius_id);
+CREATE INDEX idx_artists_mbid ON artists(mbid);
 CREATE INDEX idx_venues_city ON venues(city);
 CREATE INDEX idx_tickets_user_id ON tickets(user_id);
 CREATE INDEX idx_follows_follower ON follows(follower_id);

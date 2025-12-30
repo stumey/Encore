@@ -4,11 +4,11 @@ import { prisma } from '../database/prisma';
 import { requireAuth } from '../middleware/auth';
 import { syncUser } from '../middleware/syncUser';
 import { asyncHandler, AppError } from '../middleware/errorHandler';
-import { spotifyService, setlistService } from '../services';
+import { geniusService, setlistService } from '../services';
 
 const router = Router();
 
-// GET /artists/search - Search artists (Spotify)
+// GET /artists/search - Search artists (Genius)
 router.get(
   '/search',
   requireAuth,
@@ -17,7 +17,7 @@ router.get(
     const query = z.string().min(1).parse(req.query.q);
     const limit = parseInt(req.query.limit as string) || 10;
 
-    const artists = await spotifyService.searchArtist(query, limit);
+    const artists = await geniusService.searchArtist(query, limit);
 
     res.json({ data: artists });
   })
@@ -61,7 +61,7 @@ router.post(
     const data = z
       .object({
         name: z.string().min(1),
-        spotifyId: z.string().optional(),
+        geniusId: z.string().optional(),
         mbid: z.string().optional(),
         imageUrl: z.string().url().optional(),
         genres: z.array(z.string()).optional(),
@@ -70,8 +70,8 @@ router.post(
 
     // Check if artist already exists
     let artist = null;
-    if (data.spotifyId) {
-      artist = await prisma.artist.findUnique({ where: { spotifyId: data.spotifyId } });
+    if (data.geniusId) {
+      artist = await prisma.artist.findUnique({ where: { geniusId: data.geniusId } });
     }
     if (!artist && data.mbid) {
       artist = await prisma.artist.findUnique({ where: { mbid: data.mbid } });

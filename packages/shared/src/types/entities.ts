@@ -15,7 +15,7 @@ export interface User {
 export interface Artist {
   id: string;
   name: string;
-  spotifyId: string | null;
+  geniusId: string | null;
   mbid: string | null;
   imageUrl: string | null;
   genres: string[];

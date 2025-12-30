@@ -28,8 +28,8 @@ const envSchema = z.object({
   // External APIs (optional for local development)
   CLAUDE_API_KEY: z.string().optional(),
   SETLIST_FM_API_KEY: z.string().optional(),
-  SPOTIFY_CLIENT_ID: z.string().optional(),
-  SPOTIFY_CLIENT_SECRET: z.string().optional(),
+  GENIUS_CLIENT_ID: z.string().optional(),
+  GENIUS_CLIENT_SECRET: z.string().optional(),
 
   // Logging
   LOG_LEVEL: z.enum(['error', 'warn', 'info', 'debug']).default('info'),
