@@ -2,6 +2,7 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from '../client';
+import { useAuth } from '@/lib/auth';
 import type {
   UserProfile,
   UserStats,
@@ -22,12 +23,15 @@ const USER_KEYS = {
  * GET /users/me
  */
 export function useCurrentUser() {
+  const { isAuthenticated, isLoading } = useAuth();
+
   return useQuery({
     queryKey: USER_KEYS.currentUser(),
     queryFn: async () => {
       const response = await apiClient.get<ApiResponse<UserProfile>>('/users/me');
       return response.data;
     },
+    enabled: isAuthenticated && !isLoading,
   });
 }
 
@@ -58,6 +62,8 @@ export function useUpdateProfile() {
  * GET /users/me/stats
  */
 export function useUserStats() {
+  const { isAuthenticated, isLoading } = useAuth();
+
   return useQuery({
     queryKey: USER_KEYS.stats(),
     queryFn: async () => {
@@ -66,6 +72,7 @@ export function useUserStats() {
       );
       return response.data;
     },
+    enabled: isAuthenticated && !isLoading,
   });
 }
 
@@ -74,6 +81,8 @@ export function useUserStats() {
  * GET /users/me/artists
  */
 export function useUserArtists() {
+  const { isAuthenticated, isLoading } = useAuth();
+
   return useQuery({
     queryKey: USER_KEYS.artists(),
     queryFn: async () => {
@@ -82,5 +91,6 @@ export function useUserArtists() {
       );
       return response.data;
     },
+    enabled: isAuthenticated && !isLoading,
   });
 }

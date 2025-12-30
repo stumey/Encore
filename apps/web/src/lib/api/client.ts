@@ -5,7 +5,7 @@
  * Automatically includes authentication tokens and handles common error cases.
  */
 
-import { getAccessTokenString, formatAuthError } from '@/lib/auth';
+import { getIdTokenString, formatAuthError } from '@/lib/auth';
 
 /**
  * API Client Configuration
@@ -76,7 +76,7 @@ export class ApiClient {
    * Get request headers with authentication
    */
   private async getHeaders(additionalHeaders?: Record<string, string>): Promise<Record<string, string>> {
-    const token = await getAccessTokenString();
+    const token = await getIdTokenString();
 
     const headers: Record<string, string> = {
       ...this.defaultHeaders,
@@ -215,7 +215,7 @@ export class ApiClient {
       });
     }
 
-    const token = await getAccessTokenString();
+    const token = await getIdTokenString();
     const headers: Record<string, string> = {};
 
     if (token) {

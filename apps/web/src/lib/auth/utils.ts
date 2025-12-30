@@ -22,7 +22,6 @@ export async function getIdTokenPayload() {
 
 /**
  * Get the current user's access token as a string
- * Used for authorizing API requests
  */
 export async function getAccessTokenString(): Promise<string | null> {
   try {
@@ -35,11 +34,26 @@ export async function getAccessTokenString(): Promise<string | null> {
 }
 
 /**
+ * Get the current user's ID token as a string
+ * Used for authorizing API requests (contains email claim)
+ */
+export async function getIdTokenString(): Promise<string | null> {
+  try {
+    const session = await fetchAuthSession();
+    return session.tokens?.idToken?.toString() || null;
+  } catch (error) {
+    console.error('Error fetching ID token:', error);
+    return null;
+  }
+}
+
+/**
  * Get authentication headers for API requests
  * Returns headers object with Authorization bearer token
+ * Uses ID token which contains email claim required by API
  */
 export async function getAuthHeaders(): Promise<Record<string, string>> {
-  const token = await getAccessTokenString();
+  const token = await getIdTokenString();
 
   if (!token) {
     return {};
