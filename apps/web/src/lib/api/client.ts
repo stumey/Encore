@@ -59,7 +59,9 @@ export class ApiClient {
    * Build URL with query parameters
    */
   private buildUrl(path: string, params?: Record<string, string | number | boolean>): string {
-    const url = new URL(path, this.baseUrl);
+    // Simple string concatenation - baseUrl already includes /api/v1
+    const fullUrl = this.baseUrl + path;
+    const url = new URL(fullUrl);
 
     if (params) {
       Object.entries(params).forEach(([key, value]) => {
