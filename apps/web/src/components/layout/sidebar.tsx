@@ -8,6 +8,7 @@ export interface SidebarProps {
   items: SidebarItem[];
   className?: string;
   collapsed?: boolean;
+  onToggle?: () => void;
 }
 
 export interface SidebarItem {
@@ -23,7 +24,7 @@ export interface SidebarSubItem {
   href: string;
 }
 
-export function Sidebar({ items, className = '', collapsed = false }: SidebarProps) {
+export function Sidebar({ items, className = '', collapsed = false, onToggle }: SidebarProps) {
   const pathname = usePathname();
 
   const isActive = (href: string) => {
@@ -96,6 +97,32 @@ export function Sidebar({ items, className = '', collapsed = false }: SidebarPro
           );
         })}
       </nav>
+
+      {/* Toggle button at bottom */}
+      {onToggle && (
+        <div className="px-3 py-4 border-t border-gray-200">
+          <button
+            onClick={onToggle}
+            className={`flex items-center gap-3 px-3 py-2 w-full rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 hover:text-purple-600 transition-all duration-200`}
+            title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+          >
+            <svg
+              className={`h-5 w-5 transition-transform duration-300 ${collapsed ? 'rotate-180' : ''}`}
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M11 19l-7-7 7-7m8 14l-7-7 7-7"
+              />
+            </svg>
+            {!collapsed && <span>Collapse</span>}
+          </button>
+        </div>
+      )}
     </aside>
   );
 }

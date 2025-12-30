@@ -22,41 +22,15 @@ export function DashboardLayout({
   return (
     <div className={`min-h-screen bg-gray-50 ${className}`}>
       {/* Navbar */}
-      <Navbar
-        {...navbarProps}
-        actions={
-          <>
-            <button
-              onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-              className="p-2 text-gray-600 hover:text-purple-600 transition-colors rounded-lg hover:bg-gray-100"
-              aria-label="Toggle sidebar"
-            >
-              <svg
-                className="h-5 w-5"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d={
-                    sidebarCollapsed
-                      ? 'M4 6h16M4 12h16M4 18h16'
-                      : 'M4 6h16M4 12h8M4 18h16'
-                  }
-                />
-              </svg>
-            </button>
-            {navbarProps.actions}
-          </>
-        }
-      />
+      <Navbar {...navbarProps} />
 
       <div className="flex h-[calc(100vh-4rem)]">
         {/* Sidebar */}
-        <Sidebar items={sidebarItems} collapsed={sidebarCollapsed} />
+        <Sidebar
+          items={sidebarItems}
+          collapsed={sidebarCollapsed}
+          onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
+        />
 
         {/* Main Content */}
         <main className="flex-1 overflow-y-auto">
