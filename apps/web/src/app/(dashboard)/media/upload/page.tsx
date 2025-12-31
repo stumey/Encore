@@ -92,12 +92,10 @@ export default function MediaUploadPage() {
   const uploadFile = async (file: FileWithPreview, index: number): Promise<void> => {
     try {
       // Step 1: Get presigned upload URL
-      console.log('[Upload] Getting presigned URL for:', file.name, file.type);
       const { uploadUrl, storagePath } = await uploadUrlMutation.mutateAsync({
         contentType: file.type,
         filename: file.name,
       });
-      console.log('[Upload] Got presigned URL, storagePath:', storagePath);
 
       // Step 2: Upload to S3 with progress tracking
       await new Promise<void>((resolve, reject) => {
@@ -164,20 +162,16 @@ export default function MediaUploadPage() {
    * Upload all files in the queue
    */
   const handleUploadAll = async () => {
-    console.log('[Upload] handleUploadAll called, files:', files.length);
     if (files.length === 0) return;
 
     // Check photo limit for free users
     const pendingFiles = files.filter(f => !f.uploadComplete && !f.uploadError);
-    console.log('[Upload] pendingFiles:', pendingFiles.length, 'currentPhotoCount:', currentPhotoCount);
 
     if (!isPremium && (currentPhotoCount + pendingFiles.length) > FREE_PHOTO_LIMIT) {
-      console.log('[Upload] Hit photo limit, showing upgrade modal');
       setShowUpgradeModal(true);
       return;
     }
 
-    console.log('[Upload] Starting upload...');
     setIsUploading(true);
 
     try {
@@ -196,9 +190,8 @@ export default function MediaUploadPage() {
         }, 1000);
       }
     } catch (error) {
-      console.error('[Upload] Upload error:', error);
+      console.error('Upload error:', error);
     } finally {
-      console.log('[Upload] Upload complete, setting isUploading to false');
       setIsUploading(false);
     }
   };
@@ -225,8 +218,14 @@ export default function MediaUploadPage() {
   const errorCount = files.filter(f => f.uploadError).length;
   const pendingCount = files.length - completedCount - errorCount;
 
+  // Calculate remaining uploads for free tier
+  const remainingUploads = Math.max(0, FREE_PHOTO_LIMIT - currentPhotoCount);
+  const uploadsAfterQueue = Math.max(0, remainingUploads - pendingCount);
+  const isNearLimit = remainingUploads <= 5 && remainingUploads > 0;
+  const isAtLimit = remainingUploads === 0;
+
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-slate-900">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="mb-6">
@@ -240,11 +239,94 @@ export default function MediaUploadPage() {
             </svg>
             Back to Media
           </Button>
-          <h1 className="text-3xl font-bold text-gray-900 mt-4">Upload Media</h1>
-          <p className="text-gray-500 mt-1">
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mt-4">Upload Media</h1>
+          <p className="text-gray-500 dark:text-gray-400 mt-1">
             Add photos and videos from your concerts
           </p>
         </div>
+
+        {/* Free Tier Usage Banner - Prominent at top */}
+        {!isPremium && (
+          <div className={`mb-6 rounded-xl border p-4 ${
+            isAtLimit
+              ? 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800'
+              : isNearLimit
+                ? 'bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-800'
+                : 'bg-primary-50 dark:bg-primary-900/20 border-primary-200 dark:border-primary-800'
+          }`}>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className={`flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center ${
+                  isAtLimit
+                    ? 'bg-red-100 dark:bg-red-900'
+                    : isNearLimit
+                      ? 'bg-yellow-100 dark:bg-yellow-900'
+                      : 'bg-primary-100 dark:bg-primary-900'
+                }`}>
+                  <svg className={`w-5 h-5 ${
+                    isAtLimit
+                      ? 'text-red-600 dark:text-red-400'
+                      : isNearLimit
+                        ? 'text-yellow-600 dark:text-yellow-400'
+                        : 'text-primary-600 dark:text-primary-400'
+                  }`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                </div>
+                <div>
+                  <p className={`font-semibold ${
+                    isAtLimit
+                      ? 'text-red-900 dark:text-red-100'
+                      : isNearLimit
+                        ? 'text-yellow-900 dark:text-yellow-100'
+                        : 'text-primary-900 dark:text-primary-100'
+                  }`}>
+                    {isAtLimit
+                      ? 'Monthly limit reached'
+                      : `${remainingUploads} upload${remainingUploads !== 1 ? 's' : ''} remaining`
+                    }
+                  </p>
+                  <p className={`text-sm ${
+                    isAtLimit
+                      ? 'text-red-700 dark:text-red-300'
+                      : isNearLimit
+                        ? 'text-yellow-700 dark:text-yellow-300'
+                        : 'text-primary-700 dark:text-primary-300'
+                  }`}>
+                    {isAtLimit
+                      ? 'Upgrade to Premium for unlimited uploads'
+                      : `${currentPhotoCount} of ${FREE_PHOTO_LIMIT} used this month`
+                    }
+                  </p>
+                </div>
+              </div>
+              {(isAtLimit || isNearLimit) && (
+                <Button
+                  variant={isAtLimit ? 'primary' : 'outline'}
+                  size="sm"
+                  onClick={() => router.push('/pricing')}
+                >
+                  {isAtLimit ? 'Upgrade Now' : 'Go Unlimited'}
+                </Button>
+              )}
+            </div>
+            {/* Progress bar */}
+            <div className="mt-3">
+              <div className="w-full bg-white dark:bg-slate-800 rounded-full h-2">
+                <div
+                  className={`h-2 rounded-full transition-all ${
+                    isAtLimit
+                      ? 'bg-red-500'
+                      : isNearLimit
+                        ? 'bg-yellow-500'
+                        : 'bg-primary-600'
+                  }`}
+                  style={{ width: `${Math.min((currentPhotoCount / FREE_PHOTO_LIMIT) * 100, 100)}%` }}
+                />
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Upload Zone */}
         {!hasFiles && (
@@ -270,9 +352,9 @@ export default function MediaUploadPage() {
                     type="checkbox"
                     checked={analyzeWithAI}
                     onChange={(e) => setAnalyzeWithAI(e.target.checked)}
-                    className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                    className="rounded border-gray-300 dark:border-slate-600 text-primary-600 focus:ring-primary-500 dark:bg-slate-700"
                   />
-                  <span className="text-sm text-gray-700">Analyze with AI</span>
+                  <span className="text-sm text-gray-700 dark:text-gray-300">Analyze with AI</span>
                 </label>
               </div>
             }>
@@ -291,10 +373,10 @@ export default function MediaUploadPage() {
                 {files.map((file, index) => (
                   <div
                     key={`${file.name}-${index}`}
-                    className="flex items-center gap-4 p-3 bg-gray-50 rounded-lg"
+                    className="flex items-center gap-4 p-3 bg-gray-50 dark:bg-slate-800 rounded-lg"
                   >
                     {/* Preview/Icon */}
-                    <div className="flex-shrink-0 h-16 w-16 bg-gray-200 rounded overflow-hidden">
+                    <div className="flex-shrink-0 h-16 w-16 bg-gray-200 dark:bg-slate-700 rounded overflow-hidden">
                       {file.preview ? (
                         <img
                           src={file.preview}
@@ -314,23 +396,23 @@ export default function MediaUploadPage() {
 
                     {/* File Info */}
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-gray-900 truncate">
+                      <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
                         {file.name}
                       </p>
-                      <p className="text-xs text-gray-500">
+                      <p className="text-xs text-gray-500 dark:text-gray-400">
                         {(file.size / 1024 / 1024).toFixed(2)} MB
                       </p>
 
                       {/* Progress Bar */}
                       {!file.uploadComplete && !file.uploadError && file.uploadProgress !== undefined && (
                         <div className="mt-2">
-                          <div className="w-full bg-gray-200 rounded-full h-2">
+                          <div className="w-full bg-gray-200 dark:bg-slate-600 rounded-full h-2">
                             <div
                               className="bg-primary-600 h-2 rounded-full transition-all duration-300"
                               style={{ width: `${file.uploadProgress}%` }}
                             />
                           </div>
-                          <p className="text-xs text-gray-500 mt-1">
+                          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                             {file.uploadProgress}%
                           </p>
                         </div>
@@ -338,7 +420,7 @@ export default function MediaUploadPage() {
 
                       {/* Error Message */}
                       {file.uploadError && (
-                        <p className="text-xs text-red-600 mt-1">
+                        <p className="text-xs text-red-600 dark:text-red-400 mt-1">
                           {file.uploadError}
                         </p>
                       )}
@@ -384,8 +466,13 @@ export default function MediaUploadPage() {
         {/* Upload Button */}
         {hasFiles && pendingCount > 0 && (
           <div className="flex items-center justify-between">
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-gray-600 dark:text-gray-400">
               Ready to upload {pendingCount} file{pendingCount !== 1 ? 's' : ''}
+              {!isPremium && pendingCount > 0 && (
+                <span className="text-gray-400 dark:text-gray-500">
+                  {' '}({uploadsAfterQueue} remaining after)
+                </span>
+              )}
             </p>
             <Button
               variant="primary"
@@ -401,12 +488,12 @@ export default function MediaUploadPage() {
 
         {/* Success Message */}
         {completedCount > 0 && pendingCount === 0 && errorCount === 0 && (
-          <div className="bg-green-50 border border-green-200 rounded-lg p-6 text-center">
+          <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-6 text-center">
             <svg className="h-12 w-12 text-green-500 mx-auto mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
-            <h3 className="text-lg font-semibold text-green-900">Upload Complete!</h3>
-            <p className="text-sm text-green-700 mt-1">
+            <h3 className="text-lg font-semibold text-green-900 dark:text-green-100">Upload Complete!</h3>
+            <p className="text-sm text-green-700 dark:text-green-300 mt-1">
               Successfully uploaded {completedCount} file{completedCount !== 1 ? 's' : ''}
             </p>
             <Button
@@ -417,35 +504,6 @@ export default function MediaUploadPage() {
             >
               View Media Gallery
             </Button>
-          </div>
-        )}
-
-        {/* Photo Usage Indicator for Free Users */}
-        {!isPremium && (
-          <div className="mt-6 p-4 bg-gray-50 dark:bg-slate-800 rounded-lg">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-sm text-gray-600 dark:text-gray-400">Photo usage</span>
-              <span className="text-sm font-medium text-gray-900 dark:text-white">
-                {currentPhotoCount} / {FREE_PHOTO_LIMIT}
-              </span>
-            </div>
-            <div className="w-full bg-gray-200 dark:bg-slate-700 rounded-full h-2">
-              <div
-                className={`h-2 rounded-full transition-all ${
-                  currentPhotoCount >= FREE_PHOTO_LIMIT
-                    ? 'bg-red-500'
-                    : currentPhotoCount >= FREE_PHOTO_LIMIT * 0.8
-                      ? 'bg-yellow-500'
-                      : 'bg-primary-600'
-                }`}
-                style={{ width: `${Math.min((currentPhotoCount / FREE_PHOTO_LIMIT) * 100, 100)}%` }}
-              />
-            </div>
-            {currentPhotoCount >= FREE_PHOTO_LIMIT * 0.8 && currentPhotoCount < FREE_PHOTO_LIMIT && (
-              <p className="text-xs text-yellow-600 dark:text-yellow-400 mt-2">
-                You&apos;re approaching your free limit. <button onClick={() => router.push('/pricing')} className="underline hover:no-underline">Upgrade to Premium</button> for unlimited uploads.
-              </p>
-            )}
           </div>
         )}
       </div>
