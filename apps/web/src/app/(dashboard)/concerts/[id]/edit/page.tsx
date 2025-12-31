@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useMemo } from 'react';
-import { useRouter } from 'next/navigation';
-import { useCreateConcert } from '@/lib/api/hooks/use-concerts';
+import { useState, useMemo, useEffect } from 'react';
+import { useRouter, useParams } from 'next/navigation';
+import { useConcert, useUpdateConcert } from '@/lib/api/hooks/use-concerts';
 import { useArtists, useCreateArtistFromGenius, GeniusArtistResult } from '@/lib/api/hooks/use-artists';
 import { useVenues, useCreateVenueFromSetlist, SetlistFmVenueResult } from '@/lib/api/hooks/use-venues';
 import { Button } from '@/components/ui/button';
@@ -21,18 +21,24 @@ interface SelectedArtist {
 }
 
 /**
- * Create Concert Form Page
+ * Edit Concert Form Page
  *
- * Form for adding a new concert with:
+ * Form for editing an existing concert with pre-populated data:
  * - Date picker
  * - Artist search and selection (multiple artists, mark headliner)
  * - Venue search/select
  * - Tour name (optional)
  * - Notes (optional)
  */
-export default function NewConcertPage() {
+export default function EditConcertPage() {
   const router = useRouter();
-  const createConcert = useCreateConcert();
+  const params = useParams();
+  const concertId = params.id as string;
+
+  // Fetch existing concert data
+  const { data: concert, isLoading: concertLoading, error: concertError } = useConcert(concertId);
+
+  const updateConcert = useUpdateConcert();
   const createVenueFromSetlist = useCreateVenueFromSetlist();
   const createArtistFromGenius = useCreateArtistFromGenius();
 
@@ -42,6 +48,7 @@ export default function NewConcertPage() {
   const [selectedVenue, setSelectedVenue] = useState<Venue | null>(null);
   const [tourName, setTourName] = useState('');
   const [notes, setNotes] = useState('');
+  const [isInitialized, setIsInitialized] = useState(false);
 
   // Search state
   const [artistSearchQuery, setArtistSearchQuery] = useState('');
@@ -53,27 +60,61 @@ export default function NewConcertPage() {
   const { data: artistSearchResults, isLoading: artistsLoading } = useArtists(artistSearchQuery);
   const { data: venueSearchResults, isLoading: venuesLoading } = useVenues(venueSearchQuery);
 
+  // Pre-populate form when concert data loads
+  useEffect(() => {
+    if (concert && !isInitialized) {
+      // Set date (format as YYYY-MM-DD for input[type="date"])
+      const date = new Date(concert.concertDate);
+      setConcertDate(date.toISOString().split('T')[0]);
+
+      // Set artists
+      if (concert.artists && concert.artists.length > 0) {
+        const artists: SelectedArtist[] = concert.artists.map((ca) => ({
+          artistId: ca.artist.id,
+          artist: ca.artist,
+          isHeadliner: ca.isHeadliner,
+          setOrder: ca.setOrder,
+        }));
+        setSelectedArtists(artists);
+      }
+
+      // Set venue
+      if (concert.venue) {
+        setSelectedVenue(concert.venue);
+      }
+
+      // Set tour name
+      if (concert.tourName) {
+        setTourName(concert.tourName);
+      }
+
+      // Set notes
+      if (concert.notes) {
+        setNotes(concert.notes);
+      }
+
+      setIsInitialized(true);
+    }
+  }, [concert, isInitialized]);
+
   // Filter out already selected artists
   const availableArtists = useMemo(() => {
     if (!artistSearchResults?.data) return [];
     const selectedIds = new Set(selectedArtists.map(a => a.artistId));
-    // Filter by id for cached artists, or by geniusId for Genius results
     return artistSearchResults.data.filter(artist => {
       if (artist.id) {
         return !selectedIds.has(artist.id);
       }
-      return true; // Genius results don't have local IDs yet
+      return true;
     });
   }, [artistSearchResults, selectedArtists]);
 
   const handleAddArtist = async (artist: Artist | GeniusArtistResult) => {
     let savedArtist: Artist;
 
-    // If artist has an id, it's from local cache - use directly
     if (artist.id) {
       savedArtist = artist as Artist;
     } else if ('geniusId' in artist && artist.geniusId) {
-      // Artist is from Genius - need to create/find in local DB first
       try {
         savedArtist = await createArtistFromGenius.mutateAsync(artist as GeniusArtistResult);
       } catch (error) {
@@ -87,7 +128,7 @@ export default function NewConcertPage() {
     const newArtist: SelectedArtist = {
       artistId: savedArtist.id,
       artist: savedArtist,
-      isHeadliner: selectedArtists.length === 0, // First artist is headliner by default
+      isHeadliner: selectedArtists.length === 0,
       setOrder: selectedArtists.length + 1,
     };
     setSelectedArtists([...selectedArtists, newArtist]);
@@ -109,7 +150,6 @@ export default function NewConcertPage() {
   };
 
   const handleSelectVenue = async (venue: Venue | SetlistFmVenueResult) => {
-    // If venue has an id, it's from local cache - use directly
     if (venue.id) {
       setSelectedVenue(venue as Venue);
       setVenueSearchQuery('');
@@ -117,7 +157,6 @@ export default function NewConcertPage() {
       return;
     }
 
-    // Venue is from Setlist.fm - need to create/find in local DB first
     if ('setlistFmId' in venue && venue.setlistFmId) {
       try {
         const savedVenue = await createVenueFromSetlist.mutateAsync(venue as SetlistFmVenueResult);
@@ -138,25 +177,61 @@ export default function NewConcertPage() {
     }
 
     try {
-      const concert = await createConcert.mutateAsync({
-        concertDate: new Date(concertDate),
-        venueId: selectedVenue?.id,
-        tourName: tourName || undefined,
-        notes: notes || undefined,
-        artists: selectedArtists.map(a => ({
-          artistId: a.artistId,
-          isHeadliner: a.isHeadliner,
-          setOrder: a.setOrder,
-        })),
+      await updateConcert.mutateAsync({
+        id: concertId,
+        data: {
+          concertDate: new Date(concertDate),
+          venueId: selectedVenue?.id,
+          tourName: tourName || undefined,
+          notes: notes || undefined,
+          artists: selectedArtists.map(a => ({
+            artistId: a.artistId,
+            isHeadliner: a.isHeadliner,
+            setOrder: a.setOrder,
+          })),
+        },
       });
 
-      router.push(`/concerts/${concert.id}`);
+      router.push(`/concerts/${concertId}`);
     } catch (error) {
-      console.error('Failed to create concert:', error);
+      console.error('Failed to update concert:', error);
     }
   };
 
   const isFormValid = concertDate && selectedArtists.length > 0;
+
+  // Loading state
+  if (concertLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-slate-900 flex items-center justify-center">
+        <div className="text-center">
+          <Spinner size="lg" />
+          <p className="mt-4 text-gray-600 dark:text-gray-400">Loading concert...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Error state
+  if (concertError || !concert) {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-slate-900 p-8">
+        <div className="max-w-3xl mx-auto">
+          <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-6">
+            <h2 className="text-lg font-semibold text-red-800 dark:text-red-400 mb-2">
+              Concert Not Found
+            </h2>
+            <p className="text-red-600 dark:text-red-400 mb-4">
+              The concert you&apos;re trying to edit doesn&apos;t exist or you don&apos;t have permission to edit it.
+            </p>
+            <Button onClick={() => router.push('/concerts')} variant="outline">
+              Back to Concerts
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-slate-900">
@@ -164,7 +239,7 @@ export default function NewConcertPage() {
       <div className="bg-white dark:bg-slate-800 border-b border-gray-200 dark:border-slate-700">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <Button
-            onClick={() => router.push('/concerts')}
+            onClick={() => router.push(`/concerts/${concertId}`)}
             variant="ghost"
             size="sm"
             className="mb-4"
@@ -172,12 +247,12 @@ export default function NewConcertPage() {
             <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
-            Back to Concerts
+            Back to Concert
           </Button>
 
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Add Concert</h1>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Edit Concert</h1>
           <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
-            Add a new concert to your collection
+            Update the details of this concert
           </p>
         </div>
       </div>
@@ -369,7 +444,7 @@ export default function NewConcertPage() {
           <div className="flex items-center justify-end gap-4">
             <Button
               type="button"
-              onClick={() => router.push('/concerts')}
+              onClick={() => router.push(`/concerts/${concertId}`)}
               variant="outline"
             >
               Cancel
@@ -378,9 +453,9 @@ export default function NewConcertPage() {
               type="submit"
               variant="primary"
               disabled={!isFormValid}
-              loading={createConcert.isPending}
+              loading={updateConcert.isPending}
             >
-              Create Concert
+              Save Changes
             </Button>
           </div>
         </form>
