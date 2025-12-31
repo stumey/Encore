@@ -2,7 +2,7 @@
 
 > **Purpose:** This file contains all essential information for AI coding agents (like Claude) to effectively work on the Encore codebase. Keep this updated as the project evolves.
 
-**Last Updated:** December 29, 2025
+**Last Updated:** December 30, 2025
 
 ---
 
@@ -53,49 +53,86 @@
 ## Quick Start
 
 ### Prerequisites
-- Node.js 18+
+- **Node.js 20+**
+- **Docker Desktop** (running) - required for PostgreSQL and local services
+- **PostgreSQL** (via Docker)
 - AWS Account (Cognito for auth)
 - AWS S3 bucket (media storage)
-- Claude API key (AI analysis)
+- Claude API key (AI analysis - optional for local)
 
-### Run Locally
+### Startup Sequence
+
+**⚠️ CRITICAL:** Services must be started in the correct order:
+
+1. **Start Docker Desktop** (must be running first)
+2. **Start local infrastructure** (PostgreSQL, LocalStack)
+3. **Start the API server** (depends on PostgreSQL)
+4. **Start the web/mobile apps**
 
 ```bash
-# Install dependencies (from root)
-npm install
+# Step 1: Install dependencies (first time only)
+make install
 
-# Web app
-cd apps/web
-npm run dev
-# → http://localhost:3000
+# Step 2: Start local infrastructure (PostgreSQL via Docker)
+# ⚠️ Ensure Docker Desktop is running first!
+make dev-up
 
-# Mobile app
-cd apps/mobile
-npm start
-# → Expo Dev Tools
+# Step 3: Run database migrations (first time only)
+make db-migrate
 
-# API (if running locally)
-cd apps/api
-npm run dev
-# → http://localhost:3001
+# Step 4: Start all application services
+make dev
+
+# OR start services individually:
+make api      # API server → http://localhost:3001 (starts first!)
+make web      # Web app → http://localhost:3000
+make mobile   # Mobile app → Expo Dev Tools
 ```
+
+### Other Commands
+
+```bash
+# Build all apps
+make build
+
+# Run tests
+make test
+
+# Run linting
+make lint
+
+# Stop infrastructure
+make dev-down
+
+# View infrastructure logs
+make dev-logs
+
+# Reset all data (nuclear option)
+make dev-reset
+```
+
+**⚠️ IMPORTANT:**
+- Always use Makefile commands for consistency and proper environment setup
+- DO NOT use direct `npm run` commands unless specifically required
+- If the API fails to start, check that Docker is running and `make dev-up` succeeded
 
 ### Environment Variables
 
 **Web (.env.local):**
 ```env
-NEXT_PUBLIC_API_URL=http://localhost:3001
-NEXT_PUBLIC_COGNITO_REGION=us-east-1
-NEXT_PUBLIC_COGNITO_USER_POOL_ID=us-east-1_XXXXXXXXX
-NEXT_PUBLIC_COGNITO_CLIENT_ID=XXXXXXXXXXXXXXXXXXXXXXXXXX
+NEXT_PUBLIC_API_URL=http://localhost:3001/api/v1
+NEXT_PUBLIC_COGNITO_REGION=us-east-2
+NEXT_PUBLIC_COGNITO_USER_POOL_ID=us-east-2_tmLfmErrL
+NEXT_PUBLIC_COGNITO_CLIENT_ID=48t4jutclucc18p84qpb2skjo3
+NEXT_PUBLIC_APP_URL=http://localhost:3000
 ```
 
 **Mobile (.env):**
 ```env
-EXPO_PUBLIC_API_URL=http://localhost:3001/api
-EXPO_PUBLIC_COGNITO_USER_POOL_ID=us-east-1_XXXXXXXXX
-EXPO_PUBLIC_COGNITO_CLIENT_ID=your-client-id
-EXPO_PUBLIC_COGNITO_REGION=us-east-1
+EXPO_PUBLIC_API_URL=http://localhost:3001/api/v1
+EXPO_PUBLIC_COGNITO_USER_POOL_ID=us-east-2_tmLfmErrL
+EXPO_PUBLIC_COGNITO_CLIENT_ID=48t4jutclucc18p84qpb2skjo3
+EXPO_PUBLIC_COGNITO_REGION=us-east-2
 ```
 
 ---
@@ -159,8 +196,9 @@ Frontend displays concert info
 ### Web App Dependencies
 
 **Core:**
-- `next`: ^14.2.0 (App Router)
-- `react`: ^18.2.0
+- `next`: 14.2.35 (App Router)
+- `react`: 18.2.0 ⚠️ **Pinned to 18.2.0** (React Native constraint)
+- `react-dom`: 18.2.0
 - `typescript`: ^5.3.0
 - `tailwindcss`: ^3.4.0
 
@@ -180,7 +218,8 @@ Frontend displays concert info
 **Core:**
 - `expo`: ~51.0.0
 - `expo-router`: ~3.5.0
-- `react-native`: 0.74.0
+- `react-native`: 0.74.0 (requires React 18.2.0)
+- `react`: 18.2.0
 
 **State & Data:**
 - `@tanstack/react-query`: ^5.28.0
@@ -949,6 +988,41 @@ eas submit --platform android
 ## Troubleshooting
 
 ### Common Issues
+
+**⚠️ API not starting / "Could not connect to server" errors:**
+
+This is the most common issue. The API fails silently if PostgreSQL isn't running.
+
+**Symptoms:**
+- Web app shows: `Fetch API cannot load http://localhost:3001/... due to access control checks`
+- API calls missing `/api/v1` path in the URL
+- Port 3001 not in use when running `lsof -i :3001`
+- Multiple `tsx` processes stuck running
+
+**Solution:**
+```bash
+# 1. Kill any stuck tsx processes
+pkill -f "tsx watch"
+
+# 2. Ensure Docker Desktop is running (check menu bar)
+
+# 3. Start local infrastructure
+make dev-up
+
+# 4. Verify PostgreSQL is running
+lsof -i :5432  # Should show postgres process
+
+# 5. Start the API
+make api
+
+# 6. Verify API is running
+lsof -i :3001  # Should show node process
+curl http://localhost:3001/api/v1/health  # Should return 200 OK
+```
+
+**Root cause:** The API requires PostgreSQL, which runs in Docker. If Docker isn't running or `make dev-up` wasn't executed, the API fails to start silently.
+
+---
 
 **"Module not found" errors:**
 ```bash
