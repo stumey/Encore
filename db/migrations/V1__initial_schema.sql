@@ -31,12 +31,10 @@ CREATE TABLE artists (
 CREATE TABLE venues (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   name VARCHAR(255) NOT NULL,
+  setlist_fm_id VARCHAR(50) UNIQUE,
   city VARCHAR(100),
   state VARCHAR(100),
   country VARCHAR(100),
-  latitude DECIMAL(10, 8),
-  longitude DECIMAL(11, 8),
-  capacity INTEGER,
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );

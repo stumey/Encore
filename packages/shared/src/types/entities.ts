@@ -25,12 +25,10 @@ export interface Artist {
 export interface Venue {
   id: string;
   name: string;
+  setlistFmId: string | null;
   city: string | null;
   state: string | null;
   country: string | null;
-  latitude: number | null;
-  longitude: number | null;
-  capacity: number | null;
   createdAt: Date | string;
 }
 
