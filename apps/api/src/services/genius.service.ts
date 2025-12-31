@@ -16,6 +16,10 @@ async function getAccessToken(): Promise<string> {
     return accessToken;
   }
 
+  if (!clientId || !clientSecret) {
+    throw new Error('Genius API credentials not configured (GENIUS_CLIENT_ID and GENIUS_CLIENT_SECRET required)');
+  }
+
   // Genius OAuth2 client credentials flow
   const { data } = await axios.post(
     'https://api.genius.com/oauth/token',
