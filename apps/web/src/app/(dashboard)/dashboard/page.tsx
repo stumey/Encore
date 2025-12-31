@@ -170,7 +170,7 @@ export default function DashboardPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-600">Total Concerts</p>
-                  <p className="text-3xl font-bold text-gray-900 mt-2">
+                  <p className="text-3xl font-bold text-gray-900 dark:text-white mt-2">
                     {stats?.totalConcerts || 0}
                   </p>
                 </div>
@@ -199,7 +199,7 @@ export default function DashboardPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-600">Unique Artists</p>
-                  <p className="text-3xl font-bold text-gray-900 mt-2">
+                  <p className="text-3xl font-bold text-gray-900 dark:text-white mt-2">
                     {stats?.uniqueArtists || 0}
                   </p>
                 </div>
@@ -228,7 +228,7 @@ export default function DashboardPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-600">Unique Venues</p>
-                  <p className="text-3xl font-bold text-gray-900 mt-2">
+                  <p className="text-3xl font-bold text-gray-900 dark:text-white mt-2">
                     {stats?.uniqueVenues || 0}
                   </p>
                 </div>
@@ -263,7 +263,7 @@ export default function DashboardPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-600">Total Media</p>
-                  <p className="text-3xl font-bold text-gray-900 mt-2">
+                  <p className="text-3xl font-bold text-gray-900 dark:text-white mt-2">
                     {stats?.totalMedia || 0}
                   </p>
                 </div>
@@ -306,10 +306,10 @@ export default function DashboardPage() {
                   size="xl"
                 />
                 <div className="flex-1">
-                  <h3 className="text-2xl font-bold text-gray-900">
+                  <h3 className="text-2xl font-bold text-gray-900 dark:text-white">
                     {stats.mostSeenArtist.artist.name}
                   </h3>
-                  <p className="text-gray-600 mt-1">
+                  <p className="text-gray-600 dark:text-gray-300 mt-1">
                     Seen {stats.mostSeenArtist.count} time{stats.mostSeenArtist.count !== 1 ? 's' : ''}
                   </p>
                 </div>
@@ -356,7 +356,7 @@ export default function DashboardPage() {
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
                       <div className="flex items-center gap-3 mb-2">
-                        <h3 className="text-lg font-semibold text-gray-900">
+                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
                           {concert.artists.map((ca) => ca.artist.name).join(', ')}
                         </h3>
                         {concert._count && concert._count.media > 0 && (
@@ -365,7 +365,7 @@ export default function DashboardPage() {
                           </Badge>
                         )}
                       </div>
-                      <div className="flex items-center gap-4 text-sm text-gray-600">
+                      <div className="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-300">
                         <div className="flex items-center gap-1">
                           <svg
                             className="h-4 w-4"
