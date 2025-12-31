@@ -64,20 +64,12 @@ export default function VenueDetailPage({ params }: VenueDetailPageProps) {
   const openInMaps = useCallback(() => {
     if (!venueData) return;
 
-    if (venueData.latitude && venueData.longitude) {
-      // Open in Google Maps with coordinates
-      window.open(
-        `https://www.google.com/maps/search/?api=1&query=${venueData.latitude},${venueData.longitude}`,
-        '_blank'
-      );
-    } else {
-      // Search by venue name and location
-      const query = encodeURIComponent(`${venueData.name} ${formatLocation()}`);
-      window.open(
-        `https://www.google.com/maps/search/?api=1&query=${query}`,
-        '_blank'
-      );
-    }
+    // Search by venue name and location
+    const query = encodeURIComponent(`${venueData.name} ${formatLocation()}`);
+    window.open(
+      `https://www.google.com/maps/search/?api=1&query=${query}`,
+      '_blank'
+    );
   }, [venueData, formatLocation]);
 
   // Loading state
@@ -175,24 +167,6 @@ export default function VenueDetailPage({ params }: VenueDetailPageProps) {
                   </div>
                 )}
 
-                {venueData.capacity && (
-                  <div className="flex items-center gap-2 text-gray-600">
-                    <svg
-                      className="h-5 w-5 flex-shrink-0"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
-                      />
-                    </svg>
-                    <span>Capacity: {venueData.capacity.toLocaleString()}</span>
-                  </div>
-                )}
               </div>
 
               {/* Stats Badge */}
@@ -219,38 +193,6 @@ export default function VenueDetailPage({ params }: VenueDetailPageProps) {
         </CardContent>
       </Card>
 
-      {/* Map Placeholder */}
-      {venueData.latitude && venueData.longitude && (
-        <DashboardSection title="Location">
-          <Card>
-            <CardContent>
-              <div className="w-full h-64 bg-gray-200 rounded-lg flex items-center justify-center">
-                <div className="text-center">
-                  <svg
-                    className="h-16 w-16 text-gray-400 mx-auto mb-3"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={1.5}
-                      d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"
-                    />
-                  </svg>
-                  <p className="text-sm text-gray-600">
-                    Map integration coming soon
-                  </p>
-                  <p className="text-xs text-gray-500 mt-1">
-                    {venueData.latitude.toFixed(6)}, {venueData.longitude.toFixed(6)}
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </DashboardSection>
-      )}
 
       {/* Concerts List */}
       <DashboardSection title="Concerts at This Venue" description={`All shows you attended at ${venueData.name}`}>

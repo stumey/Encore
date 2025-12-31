@@ -17,6 +17,9 @@ import {
   useUserStats,
   useConcerts,
 } from '@/lib/api';
+import { OnThisDay } from '@/components/dashboard/on-this-day';
+import { WelcomeModal } from '@/components/onboarding/welcome-modal';
+import { useOnboarding } from '@/hooks/use-onboarding';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useMemo, useCallback } from 'react';
@@ -36,6 +39,7 @@ export default function DashboardPage() {
   const { data: user, isLoading: userLoading, error: userError } = useCurrentUser();
   const { data: stats, isLoading: statsLoading, error: statsError } = useUserStats();
   const { data: concertsData, isLoading: concertsLoading } = useConcerts(1, 5);
+  const { showOnboarding, completeOnboarding } = useOnboarding();
 
   // Memoize loading state to prevent unnecessary recalculations
   const isLoading = useMemo(
@@ -284,6 +288,9 @@ export default function DashboardPage() {
         </div>
       </DashboardSection>
 
+      {/* On This Day - Concert memories from this date in previous years */}
+      <OnThisDay />
+
       {/* Most Seen Artist */}
       {stats?.mostSeenArtist && (
         <DashboardSection
@@ -418,6 +425,12 @@ export default function DashboardPage() {
           </div>
         )}
       </DashboardSection>
+
+      {/* Welcome Modal for new users */}
+      <WelcomeModal
+        isOpen={showOnboarding}
+        onClose={completeOnboarding}
+      />
     </div>
   );
 }

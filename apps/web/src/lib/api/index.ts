@@ -37,6 +37,9 @@ export {
   useDeleteConcert,
 } from './hooks/use-concerts';
 
+// Export on-this-day hook
+export { useOnThisDay } from './hooks/use-on-this-day';
+
 // Export media hooks
 export {
   useMedia,

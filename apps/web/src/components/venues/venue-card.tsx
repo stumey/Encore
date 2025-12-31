@@ -62,12 +62,6 @@ export function VenueCard({ venue, onClick }: VenueCardProps) {
           </div>
         )}
 
-        {/* Capacity */}
-        {venue.capacity && (
-          <p className="text-sm text-gray-500 mt-2">
-            Capacity: {venue.capacity.toLocaleString()}
-          </p>
-        )}
       </div>
     </Card>
   );

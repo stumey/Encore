@@ -17,6 +17,7 @@ export interface SidebarItem {
   icon?: ReactNode;
   badge?: string | number;
   items?: SidebarSubItem[];
+  highlight?: boolean;
 }
 
 export interface SidebarSubItem {
@@ -50,9 +51,11 @@ export function Sidebar({ items, className = '', collapsed = false, onToggle }: 
                 className={`
                   flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200
                   ${
-                    active
-                      ? 'bg-primary-50 text-primary-600 dark:bg-primary-950 dark:text-primary-400'
-                      : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-800 hover:text-primary-600 dark:hover:text-primary-400'
+                    item.highlight
+                      ? 'bg-primary-600 text-white hover:bg-primary-700 dark:bg-primary-500 dark:hover:bg-primary-600 shadow-sm'
+                      : active
+                        ? 'bg-primary-50 text-primary-600 dark:bg-primary-950 dark:text-primary-400'
+                        : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-800 hover:text-primary-600 dark:hover:text-primary-400'
                   }
                 `}
                 title={collapsed ? item.label : undefined}

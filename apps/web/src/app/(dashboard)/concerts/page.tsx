@@ -62,10 +62,10 @@ export default function ConcertsPage() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50 p-8">
+      <div className="min-h-screen bg-gray-50 dark:bg-slate-900 p-8">
         <div className="max-w-7xl mx-auto">
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-            <p className="text-red-800">Error loading concerts: {error.message}</p>
+          <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
+            <p className="text-red-800 dark:text-red-400">Error loading concerts: {error.message}</p>
           </div>
         </div>
       </div>
@@ -73,14 +73,14 @@ export default function ConcertsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-slate-900">
       {/* Header */}
-      <div className="bg-white border-b border-gray-200">
+      <div className="bg-white dark:bg-slate-800 border-b border-gray-200 dark:border-slate-700">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">My Concerts</h1>
-              <p className="mt-2 text-sm text-gray-600">
+              <h1 className="text-3xl font-bold text-gray-900 dark:text-white">My Concerts</h1>
+              <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
                 {data?.pagination.total || 0} total concerts
               </p>
             </div>
@@ -129,7 +129,7 @@ export default function ConcertsPage() {
 
           {hasActiveFilters && (
             <div className="mt-4 flex items-center gap-2">
-              <span className="text-sm text-gray-600">
+              <span className="text-sm text-gray-600 dark:text-gray-400">
                 Showing {filteredConcerts.length} of {data?.pagination.total || 0} concerts
               </span>
               <Button
@@ -191,7 +191,7 @@ export default function ConcertsPage() {
                   Previous
                 </Button>
                 <div className="flex items-center gap-2 px-4">
-                  <span className="text-sm text-gray-700">
+                  <span className="text-sm text-gray-700 dark:text-gray-300">
                     Page {page} of {data.pagination.pages}
                   </span>
                 </div>

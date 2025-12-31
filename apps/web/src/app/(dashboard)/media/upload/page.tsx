@@ -3,11 +3,15 @@
 import { useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useUploadUrl, useCreateMedia, useAnalyzeMedia } from '@/lib/api/hooks/use-media';
+import { useUserStats } from '@/lib/api/hooks/use-user';
 import { UploadDropzone } from '@/components/media/upload-dropzone';
+import { UpgradeModal } from '@/components/modals/upgrade-modal';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Spinner } from '@/components/ui/spinner';
 import { Badge } from '@/components/ui/badge';
+
+const FREE_PHOTO_LIMIT = 25;
 
 interface FileWithPreview extends File {
   preview?: string;
@@ -33,10 +37,16 @@ export default function MediaUploadPage() {
   const [files, setFiles] = useState<FileWithPreview[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const [analyzeWithAI, setAnalyzeWithAI] = useState(true);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
 
+  const { data: userStats } = useUserStats();
   const uploadUrlMutation = useUploadUrl();
   const createMediaMutation = useCreateMedia();
   const analyzeMediaMutation = useAnalyzeMedia();
+
+  // TODO: Get from user subscription status when implemented
+  const isPremium = false;
+  const currentPhotoCount = userStats?.totalMedia ?? 0;
 
   /**
    * Handle files selected from dropzone or file picker
@@ -82,10 +92,12 @@ export default function MediaUploadPage() {
   const uploadFile = async (file: FileWithPreview, index: number): Promise<void> => {
     try {
       // Step 1: Get presigned upload URL
+      console.log('[Upload] Getting presigned URL for:', file.name, file.type);
       const { uploadUrl, storagePath } = await uploadUrlMutation.mutateAsync({
         contentType: file.type,
         filename: file.name,
       });
+      console.log('[Upload] Got presigned URL, storagePath:', storagePath);
 
       // Step 2: Upload to S3 with progress tracking
       await new Promise<void>((resolve, reject) => {
@@ -152,8 +164,20 @@ export default function MediaUploadPage() {
    * Upload all files in the queue
    */
   const handleUploadAll = async () => {
+    console.log('[Upload] handleUploadAll called, files:', files.length);
     if (files.length === 0) return;
 
+    // Check photo limit for free users
+    const pendingFiles = files.filter(f => !f.uploadComplete && !f.uploadError);
+    console.log('[Upload] pendingFiles:', pendingFiles.length, 'currentPhotoCount:', currentPhotoCount);
+
+    if (!isPremium && (currentPhotoCount + pendingFiles.length) > FREE_PHOTO_LIMIT) {
+      console.log('[Upload] Hit photo limit, showing upgrade modal');
+      setShowUpgradeModal(true);
+      return;
+    }
+
+    console.log('[Upload] Starting upload...');
     setIsUploading(true);
 
     try {
@@ -172,8 +196,9 @@ export default function MediaUploadPage() {
         }, 1000);
       }
     } catch (error) {
-      console.error('Upload error:', error);
+      console.error('[Upload] Upload error:', error);
     } finally {
+      console.log('[Upload] Upload complete, setting isUploading to false');
       setIsUploading(false);
     }
   };
@@ -394,7 +419,44 @@ export default function MediaUploadPage() {
             </Button>
           </div>
         )}
+
+        {/* Photo Usage Indicator for Free Users */}
+        {!isPremium && (
+          <div className="mt-6 p-4 bg-gray-50 dark:bg-slate-800 rounded-lg">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm text-gray-600 dark:text-gray-400">Photo usage</span>
+              <span className="text-sm font-medium text-gray-900 dark:text-white">
+                {currentPhotoCount} / {FREE_PHOTO_LIMIT}
+              </span>
+            </div>
+            <div className="w-full bg-gray-200 dark:bg-slate-700 rounded-full h-2">
+              <div
+                className={`h-2 rounded-full transition-all ${
+                  currentPhotoCount >= FREE_PHOTO_LIMIT
+                    ? 'bg-red-500'
+                    : currentPhotoCount >= FREE_PHOTO_LIMIT * 0.8
+                      ? 'bg-yellow-500'
+                      : 'bg-primary-600'
+                }`}
+                style={{ width: `${Math.min((currentPhotoCount / FREE_PHOTO_LIMIT) * 100, 100)}%` }}
+              />
+            </div>
+            {currentPhotoCount >= FREE_PHOTO_LIMIT * 0.8 && currentPhotoCount < FREE_PHOTO_LIMIT && (
+              <p className="text-xs text-yellow-600 dark:text-yellow-400 mt-2">
+                You&apos;re approaching your free limit. <button onClick={() => router.push('/pricing')} className="underline hover:no-underline">Upgrade to Premium</button> for unlimited uploads.
+              </p>
+            )}
+          </div>
+        )}
       </div>
+
+      {/* Upgrade Modal */}
+      <UpgradeModal
+        isOpen={showUpgradeModal}
+        onClose={() => setShowUpgradeModal(false)}
+        photosUsed={currentPhotoCount}
+        photoLimit={FREE_PHOTO_LIMIT}
+      />
     </div>
   );
 }
