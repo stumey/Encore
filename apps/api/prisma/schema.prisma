@@ -43,17 +43,15 @@ model Artist {
   @@map("artists")
 }
 
-// Venues
+// Venues (from Setlist.fm or manual entry)
 model Venue {
-  id        String   @id @default(uuid())
-  name      String
-  city      String?
-  state     String?
-  country   String?
-  latitude  Decimal?
-  longitude Decimal?
-  capacity  Int?
-  createdAt DateTime @default(now()) @map("created_at")
+  id          String   @id @default(uuid())
+  name        String
+  setlistFmId String?  @unique @map("setlist_fm_id")
+  city        String?
+  state       String?
+  country     String?
+  createdAt   DateTime @default(now()) @map("created_at")
 
   concerts Concert[]
 

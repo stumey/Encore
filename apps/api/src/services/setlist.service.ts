@@ -24,6 +24,27 @@ export interface SetlistVenue {
   city: { name: string; country: { name: string } };
 }
 
+export interface SetlistFmVenue {
+  id: string;
+  name: string;
+  url: string;
+  city?: {
+    id: string;
+    name: string;
+    state?: string;
+    stateCode?: string;
+    coords?: { lat: number; long: number };
+    country: { code: string; name: string };
+  };
+}
+
+export interface VenueSearchResponse {
+  venue: SetlistFmVenue[];
+  total: number;
+  page: number;
+  itemsPerPage: number;
+}
+
 export interface Setlist {
   id: string;
   eventDate: string;
@@ -77,5 +98,23 @@ export const setlistService = {
     if (venue) params.venueName = venue;
     const { data } = await client.get('/search/setlists', { params });
     return data;
+  },
+
+  async searchVenues(query: string, page = 1): Promise<{ venues: SetlistFmVenue[]; total: number }> {
+    try {
+      const { data } = await client.get<VenueSearchResponse>('/search/venues', {
+        params: { name: query, p: page },
+      });
+      return {
+        venues: data.venue || [],
+        total: data.total || 0,
+      };
+    } catch (error) {
+      if (axios.isAxiosError(error) && error.response?.status === 404) {
+        return { venues: [], total: 0 };
+      }
+      logger.error('Setlist.fm venue search failed', { query, error });
+      throw error;
+    }
   },
 };

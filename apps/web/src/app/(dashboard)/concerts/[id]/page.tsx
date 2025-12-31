@@ -1,6 +1,5 @@
 'use client';
 
-import { use } from 'react';
 import { useConcert, useDeleteConcert } from '@/lib/api/hooks/use-concerts';
 import { useSetlist } from '@/lib/api/hooks/use-setlists';
 import { useMedia } from '@/lib/api/hooks/use-media';
@@ -10,13 +9,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
-import { useRouter } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
 import { useState } from 'react';
 import { Modal, ModalFooter } from '@/components/ui/modal';
-
-interface ConcertDetailPageProps {
-  params: Promise<{ id: string }>;
-}
 
 /**
  * Concert Detail Page
@@ -28,8 +23,9 @@ interface ConcertDetailPageProps {
  * - Media gallery
  * - Edit and delete actions
  */
-export default function ConcertDetailPage({ params }: ConcertDetailPageProps) {
-  const { id } = use(params);
+export default function ConcertDetailPage() {
+  const params = useParams();
+  const id = params.id as string;
   const router = useRouter();
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 

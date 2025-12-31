@@ -3,8 +3,8 @@
 import { useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { useCreateConcert } from '@/lib/api/hooks/use-concerts';
-import { useArtists } from '@/lib/api/hooks/use-artists';
-import { useVenues } from '@/lib/api/hooks/use-venues';
+import { useArtists, useCreateArtistFromGenius, GeniusArtistResult } from '@/lib/api/hooks/use-artists';
+import { useVenues, useCreateVenueFromSetlist, SetlistFmVenueResult } from '@/lib/api/hooks/use-venues';
 import { Button } from '@/components/ui/button';
 import { TextInput } from '@/components/ui/text-input';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
@@ -33,6 +33,8 @@ interface SelectedArtist {
 export default function NewConcertPage() {
   const router = useRouter();
   const createConcert = useCreateConcert();
+  const createVenueFromSetlist = useCreateVenueFromSetlist();
+  const createArtistFromGenius = useCreateArtistFromGenius();
 
   // Form state
   const [concertDate, setConcertDate] = useState('');
@@ -53,15 +55,38 @@ export default function NewConcertPage() {
 
   // Filter out already selected artists
   const availableArtists = useMemo(() => {
-    if (!artistSearchResults) return [];
+    if (!artistSearchResults?.data) return [];
     const selectedIds = new Set(selectedArtists.map(a => a.artistId));
-    return artistSearchResults.filter(artist => !selectedIds.has(artist.id));
+    // Filter by id for cached artists, or by geniusId for Genius results
+    return artistSearchResults.data.filter(artist => {
+      if (artist.id) {
+        return !selectedIds.has(artist.id);
+      }
+      return true; // Genius results don't have local IDs yet
+    });
   }, [artistSearchResults, selectedArtists]);
 
-  const handleAddArtist = (artist: Artist) => {
+  const handleAddArtist = async (artist: Artist | GeniusArtistResult) => {
+    let savedArtist: Artist;
+
+    // If artist has an id, it's from local cache - use directly
+    if (artist.id) {
+      savedArtist = artist as Artist;
+    } else if ('geniusId' in artist && artist.geniusId) {
+      // Artist is from Genius - need to create/find in local DB first
+      try {
+        savedArtist = await createArtistFromGenius.mutateAsync(artist as GeniusArtistResult);
+      } catch (error) {
+        console.error('Failed to save artist:', error);
+        return;
+      }
+    } else {
+      return;
+    }
+
     const newArtist: SelectedArtist = {
-      artistId: artist.id,
-      artist,
+      artistId: savedArtist.id,
+      artist: savedArtist,
       isHeadliner: selectedArtists.length === 0, // First artist is headliner by default
       setOrder: selectedArtists.length + 1,
     };
@@ -83,10 +108,26 @@ export default function NewConcertPage() {
     );
   };
 
-  const handleSelectVenue = (venue: Venue) => {
-    setSelectedVenue(venue);
-    setVenueSearchQuery('');
-    setShowVenueSearch(false);
+  const handleSelectVenue = async (venue: Venue | SetlistFmVenueResult) => {
+    // If venue has an id, it's from local cache - use directly
+    if (venue.id) {
+      setSelectedVenue(venue as Venue);
+      setVenueSearchQuery('');
+      setShowVenueSearch(false);
+      return;
+    }
+
+    // Venue is from Setlist.fm - need to create/find in local DB first
+    if ('setlistFmId' in venue && venue.setlistFmId) {
+      try {
+        const savedVenue = await createVenueFromSetlist.mutateAsync(venue as SetlistFmVenueResult);
+        setSelectedVenue(savedVenue);
+        setVenueSearchQuery('');
+        setShowVenueSearch(false);
+      } catch (error) {
+        console.error('Failed to save venue:', error);
+      }
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -379,12 +420,18 @@ export default function NewConcertPage() {
 
           {!artistsLoading && availableArtists.length > 0 && (
             <div className="space-y-2 max-h-96 overflow-y-auto">
-              {availableArtists.map((artist) => (
+              {artistSearchResults?.source === 'genius' && (
+                <p className="text-xs text-gray-500 mb-2">
+                  Results from Genius
+                </p>
+              )}
+              {availableArtists.map((artist, index) => (
                 <button
-                  key={artist.id}
+                  key={artist.id || `genius-${index}`}
                   type="button"
                   onClick={() => handleAddArtist(artist)}
-                  className="w-full flex items-center gap-3 p-3 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors text-left"
+                  disabled={createArtistFromGenius.isPending}
+                  className="w-full flex items-center gap-3 p-3 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors text-left disabled:opacity-50"
                 >
                   {artist.imageUrl && (
                     <img
@@ -443,20 +490,26 @@ export default function NewConcertPage() {
             </div>
           )}
 
-          {!venuesLoading && venueSearchQuery && (!venueSearchResults || venueSearchResults.length === 0) && (
+          {!venuesLoading && venueSearchQuery && (!venueSearchResults?.data || venueSearchResults.data.length === 0) && (
             <p className="text-center text-gray-500 py-8">
               No venues found. Try a different search term.
             </p>
           )}
 
-          {!venuesLoading && venueSearchResults && venueSearchResults.length > 0 && (
+          {!venuesLoading && venueSearchResults?.data && venueSearchResults.data.length > 0 && (
             <div className="space-y-2 max-h-96 overflow-y-auto">
-              {venueSearchResults.map((venue) => (
+              {venueSearchResults.source === 'setlistfm' && (
+                <p className="text-xs text-gray-500 mb-2">
+                  Results from Setlist.fm
+                </p>
+              )}
+              {venueSearchResults.data.map((venue, index) => (
                 <button
-                  key={venue.id}
+                  key={venue.id || `setlist-${index}`}
                   type="button"
                   onClick={() => handleSelectVenue(venue)}
-                  className="w-full flex items-start gap-3 p-3 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors text-left"
+                  disabled={createVenueFromSetlist.isPending}
+                  className="w-full flex items-start gap-3 p-3 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors text-left disabled:opacity-50"
                 >
                   <div className="flex-shrink-0 h-10 w-10 bg-primary-100 rounded-lg flex items-center justify-center">
                     <svg className="h-6 w-6 text-primary-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -469,11 +522,6 @@ export default function NewConcertPage() {
                     {(venue.city || venue.state || venue.country) && (
                       <p className="text-sm text-gray-600">
                         {[venue.city, venue.state, venue.country].filter(Boolean).join(', ')}
-                      </p>
-                    )}
-                    {venue.capacity && (
-                      <p className="text-xs text-gray-500 mt-1">
-                        Capacity: {venue.capacity.toLocaleString()}
                       </p>
                     )}
                   </div>

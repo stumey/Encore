@@ -5,10 +5,15 @@ import { requireAuth } from '../middleware/auth';
 import { syncUser } from '../middleware/syncUser';
 import { asyncHandler, AppError } from '../middleware/errorHandler';
 import { geniusService, setlistService } from '../services';
+import { Logger } from '../utils/logger';
 
 const router = Router();
+const logger = new Logger('ArtistsRoutes');
 
-// GET /artists/search - Search artists (Genius)
+// GET /artists/search - Search artists with cache pull-through
+// 1. First check local DB for cached artists
+// 2. If found, return those (skip API call)
+// 3. If not found, call Genius and return results
 router.get(
   '/search',
   requireAuth,
@@ -17,9 +22,76 @@ router.get(
     const query = z.string().min(1).parse(req.query.q);
     const limit = parseInt(req.query.limit as string) || 10;
 
-    const artists = await geniusService.searchArtist(query, limit);
+    // First, check local database for cached artists
+    const localArtists = await prisma.artist.findMany({
+      where: {
+        name: { contains: query, mode: 'insensitive' },
+      },
+      take: limit,
+      orderBy: { name: 'asc' },
+    });
 
-    res.json({ data: artists });
+    // If we have local results, return them (cache hit)
+    if (localArtists.length > 0) {
+      logger.debug('Artist cache hit', { query, count: localArtists.length });
+      return res.json({ data: localArtists, source: 'cache' });
+    }
+
+    // Cache miss - search Genius API
+    logger.debug('Artist cache miss, searching Genius', { query });
+    try {
+      const geniusArtists = await geniusService.searchArtist(query, limit);
+
+      // Transform to our format (without id - these aren't saved yet)
+      const results = geniusArtists.map((a) => ({
+        id: null, // Not saved to DB yet
+        geniusId: String(a.id),
+        name: a.name,
+        imageUrl: a.image_url,
+        genres: [],
+      }));
+
+      res.json({ data: results, source: 'genius' });
+    } catch (error) {
+      logger.error('Genius artist search failed, returning empty', { query, error });
+      res.json({ data: [], source: 'error' });
+    }
+  })
+);
+
+// POST /artists/from-genius - Create or find artist from Genius selection
+router.post(
+  '/from-genius',
+  requireAuth,
+  syncUser,
+  asyncHandler(async (req, res) => {
+    const data = z
+      .object({
+        geniusId: z.string(),
+        name: z.string(),
+        imageUrl: z.string().nullable(),
+      })
+      .parse(req.body);
+
+    // Upsert: find by geniusId or create
+    let artist = await prisma.artist.findUnique({
+      where: { geniusId: data.geniusId },
+    });
+
+    if (!artist) {
+      artist = await prisma.artist.create({
+        data: {
+          geniusId: data.geniusId,
+          name: data.name,
+          imageUrl: data.imageUrl,
+        },
+      });
+      logger.info('Created artist from Genius', { artistId: artist.id, name: artist.name });
+    } else {
+      logger.debug('Found existing artist', { artistId: artist.id, name: artist.name });
+    }
+
+    res.json({ data: artist });
   })
 );
 

@@ -1,6 +1,6 @@
 'use client';
 
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from '../client';
 import type {
   Artist,
@@ -8,6 +8,21 @@ import type {
   MediaWithUrls,
   ApiResponse,
 } from '@encore/shared';
+
+// Extended artist type for Genius results (before saving to DB)
+export interface GeniusArtistResult {
+  id: string | null;
+  geniusId: string;
+  name: string;
+  imageUrl: string | null;
+  genres: string[];
+}
+
+// Response type that includes source indicator
+interface ArtistSearchResponse {
+  data: (Artist | GeniusArtistResult)[];
+  source: 'cache' | 'genius' | 'error';
+}
 
 const ARTIST_KEYS = {
   all: ['artists'] as const,
@@ -19,8 +34,9 @@ const ARTIST_KEYS = {
 };
 
 /**
- * Search for artists
+ * Search for artists (with cache pull-through)
  * GET /artists/search?q=query
+ * Returns cached artists from local DB, or Genius results if no cache
  */
 export function useArtists(search: string = '') {
   return useQuery({
@@ -31,12 +47,39 @@ export function useArtists(search: string = '') {
         params.append('q', search);
       }
 
-      const response = await apiClient.get<ApiResponse<Artist[]>>(
+      const response = await apiClient.get<ArtistSearchResponse>(
         `/artists/search?${params.toString()}`
+      );
+      return response;
+    },
+    enabled: search.length > 0,
+  });
+}
+
+/**
+ * Create or find an artist from Genius selection
+ * POST /artists/from-genius
+ * Used when user selects an artist from Genius search results
+ */
+export function useCreateArtistFromGenius() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (artist: GeniusArtistResult) => {
+      const response = await apiClient.post<ApiResponse<Artist>>(
+        '/artists/from-genius',
+        {
+          geniusId: artist.geniusId,
+          name: artist.name,
+          imageUrl: artist.imageUrl,
+        }
       );
       return response.data;
     },
-    enabled: search.length > 0,
+    onSuccess: () => {
+      // Invalidate artist searches to include newly cached artist
+      queryClient.invalidateQueries({ queryKey: ARTIST_KEYS.searches() });
+    },
   });
 }
 

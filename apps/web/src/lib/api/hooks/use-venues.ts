@@ -1,12 +1,28 @@
 'use client';
 
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from '../client';
 import type {
   Venue,
   VenueWithConcerts,
   ApiResponse,
 } from '@encore/shared';
+
+// Extended venue type for Setlist.fm results (before saving to DB)
+export interface SetlistFmVenueResult {
+  id: string | null;
+  setlistFmId: string;
+  name: string;
+  city: string | null;
+  state: string | null;
+  country: string | null;
+}
+
+// Response type that includes source indicator
+interface VenueSearchResponse {
+  data: (Venue | SetlistFmVenueResult)[];
+  source: 'cache' | 'setlistfm' | 'error';
+}
 
 const VENUE_KEYS = {
   all: ['venues'] as const,
@@ -17,8 +33,9 @@ const VENUE_KEYS = {
 };
 
 /**
- * Search for venues
+ * Search for venues (with cache pull-through)
  * GET /venues/search?q=query
+ * Returns cached venues from local DB, or Setlist.fm results if no cache
  */
 export function useVenues(search: string = '') {
   return useQuery({
@@ -29,10 +46,10 @@ export function useVenues(search: string = '') {
         params.append('q', search);
       }
 
-      const response = await apiClient.get<ApiResponse<Venue[]>>(
+      const response = await apiClient.get<VenueSearchResponse>(
         `/venues/search?${params.toString()}`
       );
-      return response.data;
+      return response;
     },
     enabled: search.length > 0,
   });
@@ -53,5 +70,34 @@ export function useVenue(id: string | null) {
       return response.data;
     },
     enabled: !!id,
+  });
+}
+
+/**
+ * Create or find a venue from Setlist.fm selection
+ * POST /venues/from-setlist
+ * Used when user selects a venue from Setlist.fm search results
+ */
+export function useCreateVenueFromSetlist() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (venue: SetlistFmVenueResult) => {
+      const response = await apiClient.post<ApiResponse<Venue>>(
+        '/venues/from-setlist',
+        {
+          setlistFmId: venue.setlistFmId,
+          name: venue.name,
+          city: venue.city,
+          state: venue.state,
+          country: venue.country,
+        }
+      );
+      return response.data;
+    },
+    onSuccess: () => {
+      // Invalidate venue searches to include newly cached venue
+      queryClient.invalidateQueries({ queryKey: VENUE_KEYS.searches() });
+    },
   });
 }
