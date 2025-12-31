@@ -66,7 +66,7 @@ export default function ArtistsPage() {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
         <div className="text-center">
-          <Spinner size="lg" className="text-purple-600" />
+          <Spinner size="lg" className="text-primary-600" />
           <p className="mt-4 text-gray-600">Loading artists...</p>
         </div>
       </div>

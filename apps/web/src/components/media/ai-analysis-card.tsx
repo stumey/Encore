@@ -40,7 +40,7 @@ export function AiAnalysisCard({ analysis }: AiAnalysisCardProps) {
     <div className="bg-white rounded-lg border border-gray-200 p-4 space-y-4">
       <div className="flex items-center justify-between">
         <h4 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
-          <svg className="h-5 w-5 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <svg className="h-5 w-5 text-primary-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path
               strokeLinecap="round"
               strokeLinejoin="round"
@@ -71,7 +71,7 @@ export function AiAnalysisCard({ analysis }: AiAnalysisCardProps) {
             <ul className="text-xs text-gray-600 space-y-1 mt-2">
               {artist.clues.map((clue, index) => (
                 <li key={index} className="flex items-start gap-2">
-                  <span className="text-purple-600 mt-0.5">"</span>
+                  <span className="text-primary-600 mt-0.5">"</span>
                   <span>{clue}</span>
                 </li>
               ))}
@@ -100,7 +100,7 @@ export function AiAnalysisCard({ analysis }: AiAnalysisCardProps) {
             <ul className="text-xs text-gray-600 space-y-1 mt-2">
               {venue.clues.map((clue, index) => (
                 <li key={index} className="flex items-start gap-2">
-                  <span className="text-purple-600 mt-0.5">"</span>
+                  <span className="text-primary-600 mt-0.5">"</span>
                   <span>{clue}</span>
                 </li>
               ))}
@@ -125,7 +125,7 @@ export function AiAnalysisCard({ analysis }: AiAnalysisCardProps) {
             <ul className="text-xs text-gray-600 space-y-1 mt-2">
               {tour.clues.map((clue, index) => (
                 <li key={index} className="flex items-start gap-2">
-                  <span className="text-purple-600 mt-0.5">"</span>
+                  <span className="text-primary-600 mt-0.5">"</span>
                   <span>{clue}</span>
                 </li>
               ))}

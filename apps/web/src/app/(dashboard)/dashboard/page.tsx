@@ -87,7 +87,7 @@ export default function DashboardPage() {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
         <div className="text-center">
-          <Spinner size="lg" className="text-purple-600" />
+          <Spinner size="lg" className="text-primary-600" />
           <p className="mt-4 text-gray-600">Loading dashboard...</p>
         </div>
       </div>
@@ -170,9 +170,9 @@ export default function DashboardPage() {
                     {stats?.totalConcerts || 0}
                   </p>
                 </div>
-                <div className="h-12 w-12 bg-purple-100 rounded-lg flex items-center justify-center">
+                <div className="h-12 w-12 bg-primary-100 rounded-lg flex items-center justify-center">
                   <svg
-                    className="h-6 w-6 text-purple-600"
+                    className="h-6 w-6 text-primary-600"
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"

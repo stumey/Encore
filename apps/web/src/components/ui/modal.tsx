@@ -69,19 +69,19 @@ export function Modal({
       />
 
       <div
-        className={`relative bg-white rounded-lg shadow-xl w-full ${sizeStyles[size]} max-h-[90vh] overflow-hidden flex flex-col`}
+        className={`relative bg-white dark:bg-slate-800 rounded-lg shadow-xl w-full ${sizeStyles[size]} max-h-[90vh] overflow-hidden flex flex-col`}
         role="dialog"
         aria-modal="true"
         aria-labelledby={title ? 'modal-title' : undefined}
         aria-describedby={description ? 'modal-description' : undefined}
       >
         {(title || showCloseButton) && (
-          <div className="flex items-start justify-between p-6 border-b border-gray-200">
+          <div className="flex items-start justify-between p-6 border-b border-gray-200 dark:border-slate-700">
             <div className="flex-1">
               {title && (
                 <h2
                   id="modal-title"
-                  className="text-xl font-semibold text-gray-900"
+                  className="text-xl font-semibold text-gray-900 dark:text-white"
                 >
                   {title}
                 </h2>
@@ -89,7 +89,7 @@ export function Modal({
               {description && (
                 <p
                   id="modal-description"
-                  className="mt-1 text-sm text-gray-500"
+                  className="mt-1 text-sm text-gray-500 dark:text-gray-400"
                 >
                   {description}
                 </p>
@@ -98,7 +98,7 @@ export function Modal({
             {showCloseButton && (
               <button
                 onClick={onClose}
-                className="ml-4 text-gray-400 hover:text-gray-500 transition-colors"
+                className="ml-4 text-gray-400 hover:text-gray-500 dark:text-gray-500 dark:hover:text-gray-400 transition-colors"
                 aria-label="Close modal"
               >
                 <svg
@@ -136,7 +136,7 @@ export interface ModalFooterProps {
 
 export function ModalFooter({ children, className = '' }: ModalFooterProps) {
   return (
-    <div className={`flex items-center justify-end gap-4 px-6 py-4 border-t border-gray-200 bg-gray-50 ${className}`}>
+    <div className={`flex items-center justify-end gap-4 px-6 py-4 border-t border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-900 ${className}`}>
       {children}
     </div>
   );

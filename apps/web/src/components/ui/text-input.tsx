@@ -25,11 +25,11 @@ const TextInput = forwardRef<HTMLInputElement, TextInputProps>(
     const inputId = id || label?.toLowerCase().replace(/\s+/g, '-');
     const hasError = !!error;
 
-    const baseStyles = 'px-4 py-2 rounded-lg border transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-1 disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-gray-50';
+    const baseStyles = 'px-4 py-2 rounded-lg border transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-1 disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-gray-50 bg-white dark:bg-slate-800 dark:border-slate-600 dark:text-white dark:disabled:bg-slate-700 dark:focus:ring-offset-slate-900';
 
     const stateStyles = hasError
       ? 'border-red-300 focus:border-red-500 focus:ring-red-500'
-      : 'border-gray-300 focus:border-purple-500 focus:ring-purple-500';
+      : 'border-gray-300 focus:border-primary-500 focus:ring-primary-500 dark:border-slate-600 dark:focus:border-primary-500';
 
     const widthStyle = fullWidth ? 'w-full' : '';
 
@@ -38,7 +38,7 @@ const TextInput = forwardRef<HTMLInputElement, TextInputProps>(
         {label && (
           <label
             htmlFor={inputId}
-            className="block text-sm font-medium text-gray-700 mb-1.5"
+            className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5"
           >
             {label}
           </label>
@@ -65,7 +65,7 @@ const TextInput = forwardRef<HTMLInputElement, TextInputProps>(
         {helperText && !error && (
           <p
             id={`${inputId}-helper`}
-            className="mt-1.5 text-sm text-gray-500"
+            className="mt-1.5 text-sm text-gray-500 dark:text-gray-400"
           >
             {helperText}
           </p>

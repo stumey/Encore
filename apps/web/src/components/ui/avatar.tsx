@@ -40,7 +40,7 @@ export function Avatar({
 
   return (
     <div
-      className={`${sizeStyles[size]} relative inline-flex items-center justify-center rounded-full bg-gradient-to-br from-purple-500 to-purple-700 text-white font-semibold overflow-hidden ${className}`}
+      className={`${sizeStyles[size]} relative inline-flex items-center justify-center rounded-full bg-gradient-to-br from-primary-500 to-primary-700 text-white font-semibold overflow-hidden ${className}`}
     >
       {shouldShowImage ? (
         <>

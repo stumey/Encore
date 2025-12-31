@@ -245,7 +245,7 @@ export default function MediaUploadPage() {
                     type="checkbox"
                     checked={analyzeWithAI}
                     onChange={(e) => setAnalyzeWithAI(e.target.checked)}
-                    className="rounded border-gray-300 text-purple-600 focus:ring-purple-500"
+                    className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
                   />
                   <span className="text-sm text-gray-700">Analyze with AI</span>
                 </label>
@@ -301,7 +301,7 @@ export default function MediaUploadPage() {
                         <div className="mt-2">
                           <div className="w-full bg-gray-200 rounded-full h-2">
                             <div
-                              className="bg-purple-600 h-2 rounded-full transition-all duration-300"
+                              className="bg-primary-600 h-2 rounded-full transition-all duration-300"
                               style={{ width: `${file.uploadProgress}%` }}
                             />
                           </div>

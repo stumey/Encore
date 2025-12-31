@@ -69,7 +69,7 @@ function CallbackHandler() {
 
   if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-50 via-white to-purple-50 px-4 sm:px-6 lg:px-8">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-50 via-white to-primary-50 px-4 sm:px-6 lg:px-8">
         <div className="max-w-md w-full">
           <div className="bg-white py-8 px-6 shadow-lg rounded-lg sm:px-10">
             <div className="text-center">
@@ -107,7 +107,7 @@ function CallbackHandler() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-50 via-white to-purple-50">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-50 via-white to-primary-50">
       <div className="text-center">
         <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
         <h2 className="mt-4 text-xl font-semibold text-gray-900">
@@ -122,7 +122,7 @@ function CallbackHandler() {
 export default function CallbackPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-50 via-white to-purple-50">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-50 via-white to-primary-50">
         <div className="text-center">
           <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
           <h2 className="mt-4 text-xl font-semibold text-gray-900">Loading...</h2>

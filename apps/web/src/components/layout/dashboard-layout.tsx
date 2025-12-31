@@ -20,7 +20,7 @@ export function DashboardLayout({
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   return (
-    <div className={`min-h-screen bg-gray-50 ${className}`}>
+    <div className={`min-h-screen bg-gray-50 dark:bg-slate-900 ${className}`}>
       {/* Navbar */}
       <Navbar {...navbarProps} />
 
@@ -60,9 +60,9 @@ export function DashboardPageHeader({
     <div className={`mb-8 ${className}`}>
       <div className="flex items-start justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">{title}</h1>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">{title}</h1>
           {description && (
-            <p className="mt-2 text-sm text-gray-600">{description}</p>
+            <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">{description}</p>
           )}
         </div>
         {actions && <div className="ml-4">{actions}</div>}
@@ -93,10 +93,10 @@ export function DashboardSection({
           <div className="flex items-start justify-between">
             <div>
               {title && (
-                <h2 className="text-xl font-semibold text-gray-900">{title}</h2>
+                <h2 className="text-xl font-semibold text-gray-900 dark:text-white">{title}</h2>
               )}
               {description && (
-                <p className="mt-1 text-sm text-gray-600">{description}</p>
+                <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">{description}</p>
               )}
             </div>
             {actions && <div className="ml-4">{actions}</div>}

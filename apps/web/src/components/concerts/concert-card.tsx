@@ -32,7 +32,7 @@ export function ConcertCard({ concert, className = '' }: ConcertCardProps) {
       <Card className={`hover:shadow-lg transition-all duration-200 cursor-pointer group ${className}`}>
         <CardContent className="p-0">
           {/* Thumbnail */}
-          <div className="relative h-48 bg-gradient-to-br from-purple-100 to-purple-200 rounded-t-lg overflow-hidden">
+          <div className="relative h-48 bg-gradient-to-br from-primary-100 to-primary-200 rounded-t-lg overflow-hidden">
             {thumbnail ? (
               <img
                 src={thumbnail}
@@ -42,7 +42,7 @@ export function ConcertCard({ concert, className = '' }: ConcertCardProps) {
             ) : (
               <div className="w-full h-full flex items-center justify-center">
                 <svg
-                  className="h-16 w-16 text-purple-300"
+                  className="h-16 w-16 text-primary-300"
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"

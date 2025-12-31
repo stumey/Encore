@@ -21,9 +21,9 @@ export function VenueCard({ venue, onClick }: VenueCardProps) {
     >
       <div className="flex flex-col h-full">
         {/* Venue Icon */}
-        <div className="flex items-center justify-center h-32 bg-gradient-to-br from-purple-100 to-purple-200 rounded-t-lg -mx-6 -mt-6 mb-4">
+        <div className="flex items-center justify-center h-32 bg-gradient-to-br from-primary-100 to-primary-200 rounded-t-lg -mx-6 -mt-6 mb-4">
           <svg
-            className="h-16 w-16 text-purple-600"
+            className="h-16 w-16 text-primary-600"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"

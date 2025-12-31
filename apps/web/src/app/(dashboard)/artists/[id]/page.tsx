@@ -121,7 +121,7 @@ export default function ArtistDetailPage() {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
         <div className="text-center">
-          <Spinner size="lg" className="text-purple-600" />
+          <Spinner size="lg" className="text-primary-600" />
           <p className="mt-4 text-gray-600">Loading artist...</p>
         </div>
       </div>
@@ -223,7 +223,7 @@ export default function ArtistDetailPage() {
             <CardContent className="pt-6">
               <div className="text-center">
                 <p className="text-sm font-medium text-gray-600">Times Seen</p>
-                <p className="text-3xl font-bold text-purple-600 mt-2">
+                <p className="text-3xl font-bold text-primary-600 mt-2">
                   {artistWithCount.concertCount}
                 </p>
               </div>
@@ -286,7 +286,7 @@ export default function ArtistDetailPage() {
                       {concertArtist.concert.venue && (
                         <button
                           onClick={(e) => handleVenueClick(concertArtist.concert.venue!.id, e)}
-                          className="text-sm text-gray-600 hover:text-purple-600 transition-colors text-left"
+                          className="text-sm text-gray-600 hover:text-primary-600 transition-colors text-left"
                         >
                           {concertArtist.concert.venue.name}
                           {concertArtist.concert.venue.city && (
@@ -338,7 +338,7 @@ export default function ArtistDetailPage() {
                         className="w-full h-full object-cover"
                       />
                     ) : (
-                      <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-purple-500 to-purple-700">
+                      <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary-500 to-primary-700">
                         <svg className="h-12 w-12 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />

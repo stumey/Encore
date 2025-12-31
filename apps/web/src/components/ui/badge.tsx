@@ -16,18 +16,18 @@ export function Badge({
   ...props
 }: BadgeProps) {
   const variantStyles = {
-    default: 'bg-gray-100 text-gray-700 border-gray-200',
-    primary: 'bg-purple-100 text-purple-700 border-purple-200',
-    secondary: 'bg-gray-100 text-gray-700 border-gray-200',
-    success: 'bg-green-100 text-green-700 border-green-200',
-    warning: 'bg-yellow-100 text-yellow-700 border-yellow-200',
-    error: 'bg-red-100 text-red-700 border-red-200',
-    info: 'bg-blue-100 text-blue-700 border-blue-200',
+    default: 'bg-gray-100 text-gray-700 border-gray-200 dark:bg-slate-700 dark:text-gray-300 dark:border-slate-600',
+    primary: 'bg-primary-100 text-primary-700 border-primary-200 dark:bg-primary-950 dark:text-primary-400 dark:border-primary-900',
+    secondary: 'bg-gray-100 text-gray-700 border-gray-200 dark:bg-slate-700 dark:text-gray-300 dark:border-slate-600',
+    success: 'bg-green-100 text-green-700 border-green-200 dark:bg-green-950 dark:text-green-400 dark:border-green-900',
+    warning: 'bg-yellow-100 text-yellow-700 border-yellow-200 dark:bg-yellow-950 dark:text-yellow-400 dark:border-yellow-900',
+    error: 'bg-red-100 text-red-700 border-red-200 dark:bg-red-950 dark:text-red-400 dark:border-red-900',
+    info: 'bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-950 dark:text-blue-400 dark:border-blue-900',
   };
 
   const dotStyles = {
     default: 'bg-gray-500',
-    primary: 'bg-purple-500',
+    primary: 'bg-primary-500',
     secondary: 'bg-gray-500',
     success: 'bg-green-500',
     warning: 'bg-yellow-500',

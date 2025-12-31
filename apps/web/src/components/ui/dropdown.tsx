@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { ReactNode, useEffect, useRef, useState } from 'react';
 
 export interface DropdownProps {
@@ -52,7 +53,7 @@ export function Dropdown({
 
       {isOpen && (
         <div
-          className={`absolute ${alignmentStyles} mt-2 w-56 rounded-lg bg-white shadow-lg border border-gray-200 py-1 z-50 animate-in fade-in slide-in-from-top-2 duration-200`}
+          className={`absolute ${alignmentStyles} mt-2 w-56 rounded-lg bg-white dark:bg-slate-800 shadow-lg border border-gray-200 dark:border-slate-700 py-1 z-50 animate-in fade-in slide-in-from-top-2 duration-200`}
         >
           {children}
         </div>
@@ -64,6 +65,7 @@ export function Dropdown({
 export interface DropdownItemProps {
   children: ReactNode;
   onClick?: () => void;
+  href?: string;
   icon?: ReactNode;
   danger?: boolean;
   disabled?: boolean;
@@ -73,6 +75,7 @@ export interface DropdownItemProps {
 export function DropdownItem({
   children,
   onClick,
+  href,
   icon,
   danger = false,
   disabled = false,
@@ -80,10 +83,25 @@ export function DropdownItem({
 }: DropdownItemProps) {
   const baseStyles = 'flex items-center gap-3 w-full px-4 py-2 text-sm transition-colors';
   const stateStyles = disabled
-    ? 'text-gray-400 cursor-not-allowed'
+    ? 'text-gray-400 dark:text-gray-500 cursor-not-allowed'
     : danger
-    ? 'text-red-600 hover:bg-red-50 cursor-pointer'
-    : 'text-gray-700 hover:bg-gray-100 cursor-pointer';
+    ? 'text-red-600 hover:bg-red-50 dark:hover:bg-red-950 cursor-pointer'
+    : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700 cursor-pointer';
+
+  const content = (
+    <>
+      {icon && <span className="flex-shrink-0">{icon}</span>}
+      <span className="flex-1 text-left">{children}</span>
+    </>
+  );
+
+  if (href && !disabled) {
+    return (
+      <Link href={href} className={`${baseStyles} ${stateStyles} ${className}`}>
+        {content}
+      </Link>
+    );
+  }
 
   return (
     <button
@@ -91,14 +109,13 @@ export function DropdownItem({
       disabled={disabled}
       className={`${baseStyles} ${stateStyles} ${className}`}
     >
-      {icon && <span className="flex-shrink-0">{icon}</span>}
-      <span className="flex-1 text-left">{children}</span>
+      {content}
     </button>
   );
 }
 
 export function DropdownDivider() {
-  return <div className="my-1 border-t border-gray-200" />;
+  return <div className="my-1 border-t border-gray-200 dark:border-slate-700" />;
 }
 
 export interface DropdownLabelProps {
@@ -108,7 +125,7 @@ export interface DropdownLabelProps {
 
 export function DropdownLabel({ children, className = '' }: DropdownLabelProps) {
   return (
-    <div className={`px-4 py-2 text-xs font-semibold text-gray-500 uppercase ${className}`}>
+    <div className={`px-4 py-2 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase ${className}`}>
       {children}
     </div>
   );

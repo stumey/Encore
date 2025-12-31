@@ -233,7 +233,7 @@ export default function PrivacyPage() {
             </div>
           </section>
 
-          <section className="mb-12 bg-purple-50 p-6 rounded-lg border border-purple-200">
+          <section className="mb-12 bg-primary-50 p-6 rounded-lg border border-primary-200">
             <h2 className="text-2xl font-bold text-gray-900 mb-4">Your Data, Your Control</h2>
             <p className="text-gray-700 leading-relaxed mb-4">
               At Encore, we believe you should have full control over your data. You can:

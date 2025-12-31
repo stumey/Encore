@@ -97,7 +97,7 @@ export default function StatsPage() {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
         <div className="text-center">
-          <Spinner size="lg" className="text-purple-600" />
+          <Spinner size="lg" className="text-primary-600" />
           <p className="mt-4 text-gray-600">Loading statistics...</p>
         </div>
       </div>
@@ -131,10 +131,10 @@ export default function StatsPage() {
       {/* Stats Overview Cards */}
       <DashboardSection>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <Card className="bg-gradient-to-br from-purple-50 to-purple-100 border-purple-200">
+          <Card className="bg-gradient-to-br from-primary-50 to-primary-100 border-primary-200">
             <CardContent className="pt-6">
               <div className="text-center">
-                <div className="inline-flex items-center justify-center h-16 w-16 bg-purple-600 rounded-full mb-4">
+                <div className="inline-flex items-center justify-center h-16 w-16 bg-primary-600 rounded-full mb-4">
                   <svg
                     className="h-8 w-8 text-white"
                     fill="none"
@@ -149,10 +149,10 @@ export default function StatsPage() {
                     />
                   </svg>
                 </div>
-                <p className="text-4xl font-bold text-purple-900 mb-2">
+                <p className="text-4xl font-bold text-primary-900 mb-2">
                   {stats?.totalConcerts || 0}
                 </p>
-                <p className="text-sm font-medium text-purple-700">Total Concerts</p>
+                <p className="text-sm font-medium text-primary-700">Total Concerts</p>
               </div>
             </CardContent>
           </Card>
@@ -311,7 +311,7 @@ export default function StatsPage() {
                           <div className="flex items-center gap-3 flex-1 ml-4">
                             <div className="flex-1 bg-gray-200 rounded-full h-2 overflow-hidden">
                               <div
-                                className="bg-purple-600 h-full rounded-full transition-all duration-300"
+                                className="bg-primary-600 h-full rounded-full transition-all duration-300"
                                 style={{
                                   width: `${(count / maxConcertCount) * 100}%`,
                                 }}
@@ -356,7 +356,7 @@ export default function StatsPage() {
                         />
                         <div className="flex-1">
                           <Link href={`/artists/${artist.id}`}>
-                            <h3 className="text-lg font-semibold text-gray-900 hover:text-purple-600">
+                            <h3 className="text-lg font-semibold text-gray-900 hover:text-primary-600">
                               {artist.name}
                             </h3>
                           </Link>
@@ -399,7 +399,7 @@ export default function StatsPage() {
                         </div>
                         <div className="bg-gray-200 rounded-full h-3 overflow-hidden">
                           <div
-                            className="bg-gradient-to-r from-purple-600 to-purple-400 h-full rounded-full transition-all duration-500"
+                            className="bg-gradient-to-r from-primary-600 to-primary-400 h-full rounded-full transition-all duration-500"
                             style={{
                               width: `${(count / maxConcertCount) * 100}%`,
                             }}

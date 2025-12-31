@@ -190,8 +190,8 @@ export function UploadDropzone({ onFilesSelected, compact = false }: UploadDropz
           relative border-2 border-dashed rounded-lg p-12 text-center
           transition-all duration-200 cursor-pointer
           ${isDragging
-            ? 'border-purple-500 bg-purple-50'
-            : 'border-gray-300 hover:border-purple-400 hover:bg-gray-50'
+            ? 'border-primary-500 bg-primary-50'
+            : 'border-gray-300 hover:border-primary-400 hover:bg-gray-50'
           }
         `}
         onClick={handleBrowseClick}
@@ -200,7 +200,7 @@ export function UploadDropzone({ onFilesSelected, compact = false }: UploadDropz
           {/* Upload icon */}
           <svg
             className={`h-16 w-16 mb-4 transition-colors ${
-              isDragging ? 'text-purple-500' : 'text-gray-400'
+              isDragging ? 'text-primary-500' : 'text-gray-400'
             }`}
             fill="none"
             viewBox="0 0 24 24"

@@ -2,18 +2,51 @@
 @tailwind components;
 @tailwind utilities;
 
+/*
+ * Encore Color System
+ * Primary: Orange (from logo branding)
+ * Using RGB values for Tailwind alpha support
+ */
+
 :root {
+  /* Primary Orange Scale */
+  --color-primary-50: 255 247 237;   /* #fff7ed */
+  --color-primary-100: 255 237 213;  /* #ffedd5 */
+  --color-primary-200: 254 215 170;  /* #fed7aa */
+  --color-primary-300: 253 186 116;  /* #fdba74 */
+  --color-primary-400: 251 146 60;   /* #fb923c */
+  --color-primary-500: 249 115 22;   /* #f97316 - Main brand */
+  --color-primary-600: 234 88 12;    /* #ea580c - Hover/Active */
+  --color-primary-700: 194 65 12;    /* #c2410c */
+  --color-primary-800: 154 52 18;    /* #9a3412 */
+  --color-primary-900: 124 45 18;    /* #7c2d12 */
+  --color-primary-950: 67 20 7;      /* #431407 */
+
+  /* Light mode text colors */
   --foreground-rgb: 0, 0, 0;
   --background-start-rgb: 214, 219, 220;
   --background-end-rgb: 255, 255, 255;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --foreground-rgb: 255, 255, 255;
-    --background-start-rgb: 0, 0, 0;
-    --background-end-rgb: 0, 0, 0;
-  }
+/* Dark mode - using class strategy for next-themes */
+.dark {
+  /* Primary colors stay the same in dark mode for brand consistency */
+  --color-primary-50: 255 247 237;
+  --color-primary-100: 255 237 213;
+  --color-primary-200: 254 215 170;
+  --color-primary-300: 253 186 116;
+  --color-primary-400: 251 146 60;
+  --color-primary-500: 249 115 22;
+  --color-primary-600: 234 88 12;
+  --color-primary-700: 194 65 12;
+  --color-primary-800: 154 52 18;
+  --color-primary-900: 124 45 18;
+  --color-primary-950: 67 20 7;
+
+  /* Dark mode text colors */
+  --foreground-rgb: 255, 255, 255;
+  --background-start-rgb: 0, 0, 0;
+  --background-end-rgb: 0, 0, 0;
 }
 
 body {

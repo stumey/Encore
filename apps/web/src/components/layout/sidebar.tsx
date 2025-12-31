@@ -34,7 +34,7 @@ export function Sidebar({ items, className = '', collapsed = false, onToggle }: 
 
   return (
     <aside
-      className={`bg-white border-r border-gray-200 flex flex-col transition-all duration-300 ${
+      className={`bg-white dark:bg-slate-900 border-r border-gray-200 dark:border-slate-700 flex flex-col transition-all duration-300 ${
         collapsed ? 'w-16' : 'w-64'
       } ${className}`}
     >
@@ -51,8 +51,8 @@ export function Sidebar({ items, className = '', collapsed = false, onToggle }: 
                   flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200
                   ${
                     active
-                      ? 'bg-purple-50 text-purple-600'
-                      : 'text-gray-700 hover:bg-gray-50 hover:text-purple-600'
+                      ? 'bg-primary-50 text-primary-600 dark:bg-primary-950 dark:text-primary-400'
+                      : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-800 hover:text-primary-600 dark:hover:text-primary-400'
                   }
                 `}
                 title={collapsed ? item.label : undefined}
@@ -64,7 +64,7 @@ export function Sidebar({ items, className = '', collapsed = false, onToggle }: 
                   <>
                     <span className="flex-1">{item.label}</span>
                     {item.badge && (
-                      <span className="inline-flex items-center justify-center px-2 py-0.5 text-xs font-bold rounded-full bg-purple-100 text-purple-600">
+                      <span className="inline-flex items-center justify-center px-2 py-0.5 text-xs font-bold rounded-full bg-primary-100 text-primary-600 dark:bg-primary-950 dark:text-primary-400">
                         {item.badge}
                       </span>
                     )}
@@ -83,8 +83,8 @@ export function Sidebar({ items, className = '', collapsed = false, onToggle }: 
                         block px-3 py-1.5 rounded-lg text-sm transition-colors
                         ${
                           pathname === subItem.href
-                            ? 'text-purple-600 font-medium'
-                            : 'text-gray-600 hover:text-purple-600'
+                            ? 'text-primary-600 dark:text-primary-400 font-medium'
+                            : 'text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400'
                         }
                       `}
                     >
@@ -100,10 +100,10 @@ export function Sidebar({ items, className = '', collapsed = false, onToggle }: 
 
       {/* Toggle button at bottom */}
       {onToggle && (
-        <div className="px-3 py-4 border-t border-gray-200">
+        <div className="px-3 py-4 border-t border-gray-200 dark:border-slate-700">
           <button
             onClick={onToggle}
-            className={`flex items-center gap-3 px-3 py-2 w-full rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 hover:text-purple-600 transition-all duration-200`}
+            className={`flex items-center gap-3 px-3 py-2 w-full rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-800 hover:text-primary-600 dark:hover:text-primary-400 transition-all duration-200`}
             title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
           >
             <svg

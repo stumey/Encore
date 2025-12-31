@@ -10,7 +10,7 @@ export default function PricingPage() {
   return (
     <div className="bg-white">
       {/* Header */}
-      <section className="py-20 bg-gradient-to-br from-purple-50 to-blue-50">
+      <section className="py-20 bg-gradient-to-br from-primary-50 to-blue-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h1 className="text-5xl sm:text-6xl font-bold text-gray-900 mb-6">
             Simple, Transparent Pricing
@@ -26,7 +26,7 @@ export default function PricingPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Free Plan */}
-            <div className="bg-white rounded-2xl p-8 border-2 border-gray-200 hover:border-purple-300 transition-colors">
+            <div className="bg-white rounded-2xl p-8 border-2 border-gray-200 hover:border-primary-300 transition-colors">
               <h3 className="text-2xl font-bold text-gray-900 mb-2">Free</h3>
               <div className="mb-6">
                 <span className="text-5xl font-bold text-gray-900">$0</span>
@@ -76,7 +76,7 @@ export default function PricingPage() {
             </div>
 
             {/* Premium Plan */}
-            <div className="bg-gradient-to-br from-purple-600 to-purple-700 rounded-2xl p-8 border-2 border-purple-500 shadow-2xl transform scale-105 relative">
+            <div className="bg-gradient-to-br from-primary-600 to-primary-700 rounded-2xl p-8 border-2 border-primary-500 shadow-2xl transform scale-105 relative">
               <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
                 <div className="px-4 py-1 bg-yellow-400 text-yellow-900 rounded-full text-sm font-semibold">
                   MOST POPULAR
@@ -86,9 +86,9 @@ export default function PricingPage() {
               <h3 className="text-2xl font-bold text-white mb-2">Premium</h3>
               <div className="mb-6">
                 <span className="text-5xl font-bold text-white">$4.99</span>
-                <span className="text-purple-200 ml-2">/month</span>
+                <span className="text-primary-200 ml-2">/month</span>
               </div>
-              <p className="text-purple-100 mb-8">For serious concert goers</p>
+              <p className="text-primary-100 mb-8">For serious concert goers</p>
 
               <ul className="space-y-4 mb-8">
                 <li className="flex items-start">
@@ -137,14 +137,14 @@ export default function PricingPage() {
 
               <Link
                 href="/auth/signup?plan=premium"
-                className="block w-full text-center px-6 py-3 bg-white text-purple-600 rounded-lg font-semibold hover:bg-purple-50 transition-colors"
+                className="block w-full text-center px-6 py-3 bg-white text-primary-600 rounded-lg font-semibold hover:bg-primary-50 transition-colors"
               >
                 Start Premium
               </Link>
             </div>
 
             {/* Pro Plan */}
-            <div className="bg-white rounded-2xl p-8 border-2 border-gray-200 hover:border-purple-300 transition-colors">
+            <div className="bg-white rounded-2xl p-8 border-2 border-gray-200 hover:border-primary-300 transition-colors">
               <h3 className="text-2xl font-bold text-gray-900 mb-2">Pro</h3>
               <div className="mb-6">
                 <span className="text-5xl font-bold text-gray-900">$9.99</span>
@@ -199,7 +199,7 @@ export default function PricingPage() {
 
               <Link
                 href="/auth/signup?plan=pro"
-                className="block w-full text-center px-6 py-3 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 transition-colors"
+                className="block w-full text-center px-6 py-3 bg-primary-600 text-white rounded-lg font-semibold hover:bg-primary-700 transition-colors"
               >
                 Start Pro
               </Link>
@@ -274,21 +274,21 @@ export default function PricingPage() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 bg-gradient-to-br from-purple-600 to-blue-600 text-white">
+      <section className="py-20 bg-gradient-to-br from-primary-600 to-blue-600 text-white">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-4xl font-bold mb-6">
             Ready to Get Started?
           </h2>
-          <p className="text-xl mb-8 text-purple-100">
+          <p className="text-xl mb-8 text-primary-100">
             Join thousands of concert lovers preserving their memories with Encore
           </p>
           <Link
             href="/auth/signup"
-            className="inline-block px-8 py-4 bg-white text-purple-600 rounded-lg font-semibold text-lg hover:bg-purple-50 transition-all transform hover:scale-105 shadow-lg"
+            className="inline-block px-8 py-4 bg-white text-primary-600 rounded-lg font-semibold text-lg hover:bg-primary-50 transition-all transform hover:scale-105 shadow-lg"
           >
             Start Free Today
           </Link>
-          <p className="mt-6 text-purple-200">
+          <p className="mt-6 text-primary-200">
             No credit card required • Cancel anytime
           </p>
         </div>

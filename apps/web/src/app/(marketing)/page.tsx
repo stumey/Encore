@@ -15,7 +15,7 @@ export default function LandingPage() {
   return (
     <div className="bg-white">
       {/* Hero Section */}
-      <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-gradient-to-br from-purple-50 via-white to-blue-50">
+      <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-gradient-to-br from-primary-50 via-white to-blue-50">
         {/* Background Pattern */}
         <div className="absolute inset-0 opacity-5">
           <div className="absolute inset-0" style={{
@@ -25,7 +25,7 @@ export default function LandingPage() {
 
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 text-center">
           {/* Badge */}
-          <div className="inline-flex items-center px-4 py-2 rounded-full bg-purple-100 text-purple-600 font-medium mb-8 animate-in">
+          <div className="inline-flex items-center px-4 py-2 rounded-full bg-primary-100 text-primary-600 font-medium mb-8 animate-in">
             <span className="mr-2">🎸</span>
             The only AI-powered concert memory app
           </div>
@@ -33,7 +33,7 @@ export default function LandingPage() {
           {/* Headline */}
           <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold text-gray-900 mb-6">
             Your Concert History,{' '}
-            <span className="bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-primary-600 to-blue-600 bg-clip-text text-transparent">
               Replayed
             </span>
           </h1>
@@ -49,13 +49,13 @@ export default function LandingPage() {
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-16">
             <Link
               href="/auth/signup"
-              className="w-full sm:w-auto px-8 py-4 bg-purple-600 text-white rounded-lg font-semibold text-lg hover:bg-purple-700 transition-all transform hover:scale-105 shadow-lg hover:shadow-xl"
+              className="w-full sm:w-auto px-8 py-4 bg-primary-600 text-white rounded-lg font-semibold text-lg hover:bg-primary-700 transition-all transform hover:scale-105 shadow-lg hover:shadow-xl"
             >
               Get Started Free
             </Link>
             <Link
               href="/#how-it-works"
-              className="w-full sm:w-auto px-8 py-4 bg-white text-purple-600 border-2 border-purple-600 rounded-lg font-semibold text-lg hover:bg-purple-50 transition-all"
+              className="w-full sm:w-auto px-8 py-4 bg-white text-primary-600 border-2 border-primary-600 rounded-lg font-semibold text-lg hover:bg-primary-50 transition-all"
             >
               See How It Works
             </Link>
@@ -89,7 +89,7 @@ export default function LandingPage() {
 
           {/* Hero Image - Placeholder */}
           <div className="max-w-4xl mx-auto mt-16 rounded-2xl overflow-hidden shadow-2xl border-8 border-white">
-            <div className="aspect-video bg-gradient-to-br from-purple-400 to-blue-500 flex items-center justify-center">
+            <div className="aspect-video bg-gradient-to-br from-primary-400 to-blue-500 flex items-center justify-center">
               <div className="text-white text-center">
                 <svg className="w-24 h-24 mx-auto mb-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -102,15 +102,15 @@ export default function LandingPage() {
           {/* Stats */}
           <div className="grid grid-cols-3 gap-8 max-w-3xl mx-auto mt-20">
             <div className="text-center">
-              <div className="text-4xl font-bold text-purple-600 mb-2">10,000+</div>
+              <div className="text-4xl font-bold text-primary-600 mb-2">10,000+</div>
               <div className="text-gray-600">Concerts Remembered</div>
             </div>
             <div className="text-center">
-              <div className="text-4xl font-bold text-purple-600 mb-2">5,000+</div>
+              <div className="text-4xl font-bold text-primary-600 mb-2">5,000+</div>
               <div className="text-gray-600">Active Users</div>
             </div>
             <div className="text-center">
-              <div className="text-4xl font-bold text-purple-600 mb-2">98%</div>
+              <div className="text-4xl font-bold text-primary-600 mb-2">98%</div>
               <div className="text-gray-600">AI Accuracy</div>
             </div>
           </div>
@@ -134,12 +134,12 @@ export default function LandingPage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
             {/* Step 1 */}
             <div className="text-center">
-              <div className="w-20 h-20 bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg">
+              <div className="w-20 h-20 bg-gradient-to-br from-primary-500 to-primary-600 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg">
                 <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                 </svg>
               </div>
-              <div className="text-purple-600 font-semibold mb-2">STEP 1</div>
+              <div className="text-primary-600 font-semibold mb-2">STEP 1</div>
               <h3 className="text-2xl font-bold text-gray-900 mb-4">Upload Your Photos</h3>
               <p className="text-gray-600">
                 Take photos at concerts or upload your camera roll. We support all image formats.
@@ -148,12 +148,12 @@ export default function LandingPage() {
 
             {/* Step 2 */}
             <div className="text-center">
-              <div className="w-20 h-20 bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg">
+              <div className="w-20 h-20 bg-gradient-to-br from-primary-500 to-primary-600 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg">
                 <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
                 </svg>
               </div>
-              <div className="text-purple-600 font-semibold mb-2">STEP 2</div>
+              <div className="text-primary-600 font-semibold mb-2">STEP 2</div>
               <h3 className="text-2xl font-bold text-gray-900 mb-4">AI Identifies Everything</h3>
               <p className="text-gray-600">
                 Our AI automatically detects the artist, venue, date, and even the setlist.
@@ -162,12 +162,12 @@ export default function LandingPage() {
 
             {/* Step 3 */}
             <div className="text-center">
-              <div className="w-20 h-20 bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg">
+              <div className="w-20 h-20 bg-gradient-to-br from-primary-500 to-primary-600 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg">
                 <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
                 </svg>
               </div>
-              <div className="text-purple-600 font-semibold mb-2">STEP 3</div>
+              <div className="text-primary-600 font-semibold mb-2">STEP 3</div>
               <h3 className="text-2xl font-bold text-gray-900 mb-4">Relive Your Memories</h3>
               <p className="text-gray-600">
                 Browse your concert history, stats, and memories. Share with friends.
@@ -178,7 +178,7 @@ export default function LandingPage() {
       </section>
 
       {/* Problem/Solution Section */}
-      <section className="py-24 bg-gradient-to-br from-gray-50 to-purple-50">
+      <section className="py-24 bg-gradient-to-br from-gray-50 to-primary-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             {/* Problem */}
@@ -227,7 +227,7 @@ export default function LandingPage() {
               <h2 className="text-4xl font-bold text-gray-900 mb-6">
                 Stop forgetting.
                 <br />
-                <span className="text-purple-600">Start remembering.</span>
+                <span className="text-primary-600">Start remembering.</span>
               </h2>
               <div className="space-y-4 text-lg text-gray-600">
                 <p className="flex items-start">
@@ -276,8 +276,8 @@ export default function LandingPage() {
           {/* Feature Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {/* Feature 1 */}
-            <div className="p-8 rounded-2xl bg-gradient-to-br from-purple-50 to-white border border-purple-100 hover:shadow-lg transition-shadow">
-              <div className="w-14 h-14 bg-purple-600 rounded-xl flex items-center justify-center mb-6">
+            <div className="p-8 rounded-2xl bg-gradient-to-br from-primary-50 to-white border border-primary-100 hover:shadow-lg transition-shadow">
+              <div className="w-14 h-14 bg-primary-600 rounded-xl flex items-center justify-center mb-6">
                 <span className="text-3xl">🤖</span>
               </div>
               <h3 className="text-xl font-bold text-gray-900 mb-3">AI Photo Analysis</h3>
@@ -323,7 +323,7 @@ export default function LandingPage() {
       </section>
 
       {/* Pricing Preview Section */}
-      <section className="py-24 bg-gradient-to-br from-purple-50 to-blue-50">
+      <section className="py-24 bg-gradient-to-br from-primary-50 to-blue-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-4xl sm:text-5xl font-bold text-gray-900 mb-4">
@@ -377,14 +377,14 @@ export default function LandingPage() {
             </div>
 
             {/* Premium Plan */}
-            <div className="bg-gradient-to-br from-purple-600 to-purple-700 rounded-2xl p-8 border-2 border-purple-500 shadow-xl transform scale-105">
+            <div className="bg-gradient-to-br from-primary-600 to-primary-700 rounded-2xl p-8 border-2 border-primary-500 shadow-xl transform scale-105">
               <div className="inline-block px-3 py-1 bg-yellow-400 text-yellow-900 rounded-full text-sm font-semibold mb-4">
                 MOST POPULAR
               </div>
               <h3 className="text-2xl font-bold text-white mb-2">Premium</h3>
               <div className="mb-6">
                 <span className="text-4xl font-bold text-white">$4.99</span>
-                <span className="text-purple-200">/month</span>
+                <span className="text-primary-200">/month</span>
               </div>
               <ul className="space-y-4 mb-8">
                 <li className="flex items-start">
@@ -420,7 +420,7 @@ export default function LandingPage() {
               </ul>
               <Link
                 href="/auth/signup?plan=premium"
-                className="block w-full text-center px-6 py-3 bg-white text-purple-600 rounded-lg font-semibold hover:bg-purple-50 transition-colors"
+                className="block w-full text-center px-6 py-3 bg-white text-primary-600 rounded-lg font-semibold hover:bg-primary-50 transition-colors"
               >
                 Start Premium
               </Link>
@@ -428,7 +428,7 @@ export default function LandingPage() {
           </div>
 
           <div className="text-center mt-8">
-            <Link href="/pricing" className="text-purple-600 hover:text-purple-700 font-semibold">
+            <Link href="/pricing" className="text-primary-600 hover:text-primary-700 font-semibold">
               See full pricing details →
             </Link>
           </div>
@@ -449,9 +449,9 @@ export default function LandingPage() {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {/* Testimonial 1 */}
-            <div className="bg-gradient-to-br from-purple-50 to-white p-8 rounded-2xl border border-purple-100">
+            <div className="bg-gradient-to-br from-primary-50 to-white p-8 rounded-2xl border border-primary-100">
               <div className="flex items-center mb-4">
-                <div className="w-12 h-12 bg-purple-600 rounded-full flex items-center justify-center text-white font-bold mr-4">
+                <div className="w-12 h-12 bg-primary-600 rounded-full flex items-center justify-center text-white font-bold mr-4">
                   SK
                 </div>
                 <div>
@@ -500,29 +500,29 @@ export default function LandingPage() {
       </section>
 
       {/* Final CTA Section */}
-      <section className="py-24 bg-gradient-to-br from-purple-600 to-blue-600 text-white">
+      <section className="py-24 bg-gradient-to-br from-primary-600 to-blue-600 text-white">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-4xl sm:text-5xl font-bold mb-6">
             Ready to Relive Your Concerts?
           </h2>
-          <p className="text-xl mb-12 text-purple-100">
+          <p className="text-xl mb-12 text-primary-100">
             Join thousands of music lovers preserving their concert memories with AI
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
               href="/auth/signup"
-              className="px-8 py-4 bg-white text-purple-600 rounded-lg font-semibold text-lg hover:bg-purple-50 transition-all transform hover:scale-105 shadow-lg"
+              className="px-8 py-4 bg-white text-primary-600 rounded-lg font-semibold text-lg hover:bg-primary-50 transition-all transform hover:scale-105 shadow-lg"
             >
               Get Started Free
             </Link>
             <Link
               href="/pricing"
-              className="px-8 py-4 bg-purple-700 text-white border-2 border-white rounded-lg font-semibold text-lg hover:bg-purple-800 transition-all"
+              className="px-8 py-4 bg-primary-700 text-white border-2 border-white rounded-lg font-semibold text-lg hover:bg-primary-800 transition-all"
             >
               View Pricing
             </Link>
           </div>
-          <p className="mt-8 text-purple-200">
+          <p className="mt-8 text-primary-200">
             No credit card required • 25 free photos/month • Cancel anytime
           </p>
         </div>

@@ -12,7 +12,7 @@ export function Card({ children, className = '', noPadding = false, ...props }: 
 
   return (
     <div
-      className={`bg-white rounded-lg shadow-md border border-gray-200 ${paddingStyle} ${className}`}
+      className={`bg-white dark:bg-slate-800 rounded-lg shadow-md border border-gray-200 dark:border-slate-700 ${paddingStyle} ${className}`}
       {...props}
     >
       {children}
@@ -28,7 +28,7 @@ export interface CardHeaderProps extends HTMLAttributes<HTMLDivElement> {
 export function CardHeader({ children, actions, className = '', ...props }: CardHeaderProps) {
   return (
     <div
-      className={`flex items-center justify-between pb-4 border-b border-gray-200 ${className}`}
+      className={`flex items-center justify-between pb-4 border-b border-gray-200 dark:border-slate-700 ${className}`}
       {...props}
     >
       <div className="flex-1">{children}</div>
@@ -44,7 +44,7 @@ export interface CardTitleProps extends HTMLAttributes<HTMLHeadingElement> {
 export function CardTitle({ children, className = '', ...props }: CardTitleProps) {
   return (
     <h3
-      className={`text-lg font-semibold text-gray-900 ${className}`}
+      className={`text-lg font-semibold text-gray-900 dark:text-white ${className}`}
       {...props}
     >
       {children}
@@ -59,7 +59,7 @@ export interface CardDescriptionProps extends HTMLAttributes<HTMLParagraphElemen
 export function CardDescription({ children, className = '', ...props }: CardDescriptionProps) {
   return (
     <p
-      className={`text-sm text-gray-500 mt-1 ${className}`}
+      className={`text-sm text-gray-500 dark:text-gray-400 mt-1 ${className}`}
       {...props}
     >
       {children}
@@ -86,7 +86,7 @@ export interface CardFooterProps extends HTMLAttributes<HTMLDivElement> {
 export function CardFooter({ children, className = '', ...props }: CardFooterProps) {
   return (
     <div
-      className={`pt-4 border-t border-gray-200 flex items-center gap-4 ${className}`}
+      className={`pt-4 border-t border-gray-200 dark:border-slate-700 flex items-center gap-4 ${className}`}
       {...props}
     >
       {children}

@@ -370,7 +370,7 @@ export function SpinnerExamples() {
       </div>
 
       <div className="flex gap-4">
-        <div className="text-purple-600">
+        <div className="text-primary-600">
           <Spinner size="md" />
         </div>
         <div className="text-red-600">

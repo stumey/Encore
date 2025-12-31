@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import Link from 'next/link';
 import { ReactNode, useState } from 'react';
 import { Avatar } from '../ui/avatar';
@@ -38,16 +39,25 @@ export function Navbar({
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
-    <nav className={`bg-white border-b border-gray-200 ${className}`}>
+    <nav className={`bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-slate-700 ${className}`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <div className="flex items-center">
-            <Link href={logoHref} className="flex items-center">
+            <Link href={logoHref} className="flex items-center gap-2">
               {logo || (
-                <span className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-purple-800 bg-clip-text text-transparent">
-                  Encore
-                </span>
+                <>
+                  <Image
+                    src="/logo-icon.png"
+                    alt="Encore"
+                    width={32}
+                    height={32}
+                    className="h-8 w-8"
+                  />
+                  <span className="text-xl font-bold text-gray-900 dark:text-white">
+                    encore
+                  </span>
+                </>
               )}
             </Link>
           </div>
@@ -62,8 +72,8 @@ export function Navbar({
                     href={link.href}
                     className={`text-sm font-medium transition-colors ${
                       link.active
-                        ? 'text-purple-600'
-                        : 'text-gray-700 hover:text-purple-600'
+                        ? 'text-primary-600 dark:text-primary-400'
+                        : 'text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400'
                     }`}
                   >
                     {link.label}
@@ -85,8 +95,8 @@ export function Navbar({
               >
                 <DropdownLabel>Account</DropdownLabel>
                 <div className="px-4 py-2">
-                  <p className="text-sm font-medium text-gray-900">{user.name}</p>
-                  <p className="text-xs text-gray-500">{user.email}</p>
+                  <p className="text-sm font-medium text-gray-900 dark:text-white">{user.name}</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">{user.email}</p>
                 </div>
                 <DropdownDivider />
                 <DropdownItem
@@ -99,6 +109,7 @@ export function Navbar({
                   Profile
                 </DropdownItem>
                 <DropdownItem
+                  href="/settings"
                   icon={
                     <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
@@ -128,7 +139,7 @@ export function Navbar({
           <div className="md:hidden">
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="text-gray-700 hover:text-purple-600 transition-colors"
+              className="text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
               aria-label="Toggle menu"
             >
               <svg
@@ -150,7 +161,7 @@ export function Navbar({
 
       {/* Mobile menu */}
       {mobileMenuOpen && (
-        <div className="md:hidden border-t border-gray-200">
+        <div className="md:hidden border-t border-gray-200 dark:border-slate-700">
           <div className="px-4 py-4 space-y-3">
             {navLinks.map((link) => (
               <Link
@@ -158,8 +169,8 @@ export function Navbar({
                 href={link.href}
                 className={`block px-3 py-2 rounded-lg text-base font-medium transition-colors ${
                   link.active
-                    ? 'bg-purple-50 text-purple-600'
-                    : 'text-gray-700 hover:bg-gray-50'
+                    ? 'bg-primary-50 text-primary-600 dark:bg-primary-950 dark:text-primary-400'
+                    : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-800'
                 }`}
                 onClick={() => setMobileMenuOpen(false)}
               >
@@ -168,12 +179,12 @@ export function Navbar({
             ))}
             {user && (
               <>
-                <div className="border-t border-gray-200 pt-3 mt-3">
+                <div className="border-t border-gray-200 dark:border-slate-700 pt-3 mt-3">
                   <div className="flex items-center gap-3 px-3 py-2">
                     <Avatar src={user.avatar} name={user.name} size="md" />
                     <div>
-                      <p className="text-sm font-medium text-gray-900">{user.name}</p>
-                      <p className="text-xs text-gray-500">{user.email}</p>
+                      <p className="text-sm font-medium text-gray-900 dark:text-white">{user.name}</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">{user.email}</p>
                     </div>
                   </div>
                 </div>

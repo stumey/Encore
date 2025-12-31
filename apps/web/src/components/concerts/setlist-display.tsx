@@ -63,14 +63,14 @@ export function SetlistDisplay({ setlist, className = '' }: SetlistDisplayProps)
           {/* Encore */}
           {encoreSet.length > 0 && (
             <div className="pt-4 border-t border-gray-200">
-              <h4 className="text-sm font-semibold text-purple-700 mb-3">Encore</h4>
+              <h4 className="text-sm font-semibold text-primary-700 mb-3">Encore</h4>
               <ol className="space-y-2">
                 {encoreSet.map((song, index) => (
                   <li
                     key={`encore-${index}`}
                     className="flex items-start gap-3 text-sm"
                   >
-                    <span className="flex-shrink-0 w-6 text-purple-400 font-medium">
+                    <span className="flex-shrink-0 w-6 text-primary-400 font-medium">
                       {song.position}.
                     </span>
                     <span className="flex-1 text-gray-900 font-medium">{song.name}</span>

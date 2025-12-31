@@ -52,7 +52,7 @@ export function MediaCard({
       className={`
         relative group cursor-pointer rounded-lg overflow-hidden bg-gray-100
         transition-all duration-200 hover:shadow-lg
-        ${selected ? 'ring-4 ring-purple-500' : 'ring-1 ring-gray-200 hover:ring-gray-300'}
+        ${selected ? 'ring-4 ring-primary-500' : 'ring-1 ring-gray-200 hover:ring-gray-300'}
       `}
       onClick={handleCardClick}
     >
@@ -118,8 +118,8 @@ export function MediaCard({
                 w-6 h-6 rounded border-2 flex items-center justify-center
                 transition-all cursor-pointer
                 ${selected
-                  ? 'bg-purple-600 border-purple-600'
-                  : 'bg-white border-gray-300 hover:border-purple-400'
+                  ? 'bg-primary-600 border-primary-600'
+                  : 'bg-white border-gray-300 hover:border-primary-400'
                 }
               `}
             >
