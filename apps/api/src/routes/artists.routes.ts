@@ -95,6 +95,48 @@ router.post(
   })
 );
 
+// POST /artists/batch-from-setlist - Batch create/find artists from Setlist.fm lineup
+router.post(
+  '/batch-from-setlist',
+  requireAuth,
+  syncUser,
+  asyncHandler(async (req, res) => {
+    const { artists } = z
+      .object({
+        artists: z.array(
+          z.object({
+            mbid: z.string(),
+            name: z.string(),
+          })
+        ),
+      })
+      .parse(req.body);
+
+    // Process each artist - find by mbid or create
+    const results = await Promise.all(
+      artists.map(async (artistData) => {
+        let artist = await prisma.artist.findUnique({
+          where: { mbid: artistData.mbid },
+        });
+
+        if (!artist) {
+          artist = await prisma.artist.create({
+            data: {
+              mbid: artistData.mbid,
+              name: artistData.name,
+            },
+          });
+          logger.info('Created artist from Setlist.fm', { artistId: artist.id, name: artist.name });
+        }
+
+        return artist;
+      })
+    );
+
+    res.json({ data: results });
+  })
+);
+
 // GET /artists/:id - Artist details with user's concerts
 router.get(
   '/:id',

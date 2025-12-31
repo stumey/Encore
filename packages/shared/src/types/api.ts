@@ -69,3 +69,17 @@ export interface MediaWithUrls extends Media {
     artists: (ConcertArtist & { artist: Pick<Artist, 'id' | 'name'> })[];
   }) | null;
 }
+
+// Setlist.fm lineup suggestion types
+export interface LineupArtist {
+  mbid: string;
+  name: string;
+  isHeadliner: boolean;
+}
+
+export interface VenueLineupResponse {
+  artists: LineupArtist[];
+  eventName?: string;
+  venueId: string;
+  date: string;
+}

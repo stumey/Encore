@@ -28,6 +28,25 @@ router.get(
   })
 );
 
+// GET /setlists/venue-lineup - Get all artists who performed at a venue on a date
+router.get(
+  '/venue-lineup',
+  requireAuth,
+  syncUser,
+  asyncHandler(async (req, res) => {
+    const { venueId, date } = z
+      .object({
+        venueId: z.string(),    // Setlist.fm venue ID
+        date: z.string(),       // dd-MM-yyyy format
+      })
+      .parse(req.query);
+
+    const lineup = await setlistService.getVenueLineup(venueId, date);
+
+    res.json({ data: lineup });
+  })
+);
+
 // GET /setlists/:setlistFmId - Get setlist from Setlist.fm
 router.get(
   '/:setlistFmId',

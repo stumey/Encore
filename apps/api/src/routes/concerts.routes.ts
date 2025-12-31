@@ -167,6 +167,65 @@ router.delete(
   })
 );
 
+// POST /concerts/:id/artists - Add artists to an existing concert
+router.post(
+  '/:id/artists',
+  requireAuth,
+  syncUser,
+  asyncHandler(async (req, res) => {
+    const { artists } = z
+      .object({
+        artists: z.array(
+          z.object({
+            artistId: z.string().uuid(),
+            isHeadliner: z.boolean().default(false),
+            setOrder: z.number().optional(),
+          })
+        ),
+      })
+      .parse(req.body);
+
+    // Verify ownership
+    const concert = await prisma.concert.findFirst({
+      where: { id: req.params.id, userId: req.user!.userId },
+    });
+
+    if (!concert) {
+      throw new AppError('Concert not found', 404);
+    }
+
+    // Get existing artist count for setOrder
+    const existingCount = await prisma.concertArtist.count({
+      where: { concertId: concert.id },
+    });
+
+    // Add new artists (skip duplicates)
+    await prisma.concertArtist.createMany({
+      data: artists.map((a, i) => ({
+        concertId: concert.id,
+        artistId: a.artistId,
+        isHeadliner: a.isHeadliner,
+        setOrder: a.setOrder ?? existingCount + i + 1,
+      })),
+      skipDuplicates: true,
+    });
+
+    // Return updated concert
+    const updated = await prisma.concert.findUnique({
+      where: { id: concert.id },
+      include: {
+        venue: true,
+        artists: {
+          include: { artist: true },
+          orderBy: { setOrder: 'asc' },
+        },
+      },
+    });
+
+    res.json({ data: updated });
+  })
+);
+
 // POST /concerts/:id/verify - Mark as verified
 router.post(
   '/:id/verify',

@@ -1,6 +1,7 @@
 import axios from 'axios';
 import { configService } from '../config/env';
 import { Logger } from '../utils/logger';
+import type { LineupArtist, VenueLineupResponse } from '@encore/shared';
 
 const logger = new Logger('SetlistService');
 
@@ -60,6 +61,9 @@ export interface SetlistSearchResponse {
   setlist: Setlist[];
 }
 
+// Re-export shared types for convenience
+export type { LineupArtist, VenueLineupResponse } from '@encore/shared';
+
 export const setlistService = {
   async searchArtist(query: string): Promise<SetlistArtist[]> {
     try {
@@ -115,6 +119,62 @@ export const setlistService = {
       }
       logger.error('Setlist.fm venue search failed', { query, error });
       throw error;
+    }
+  },
+
+  /**
+   * Get all artists who performed at a venue on a specific date.
+   * Useful for festivals and multi-artist events.
+   *
+   * @param venueId - Setlist.fm venue ID
+   * @param date - Date in dd-MM-yyyy format (Setlist.fm format)
+   */
+  async getVenueLineup(venueId: string, date: string): Promise<VenueLineupResponse> {
+    try {
+      const { data } = await client.get<SetlistSearchResponse>('/search/setlists', {
+        params: { venueId, date },
+      });
+
+      const setlists = data.setlist || [];
+      const totalArtists = setlists.length;
+
+      // Each setlist represents one artist's performance
+      // Extract unique artists by MBID
+      const artistMap = new Map<string, LineupArtist>();
+
+      for (let i = 0; i < setlists.length; i++) {
+        const { artist } = setlists[i];
+        if (artist?.mbid && !artistMap.has(artist.mbid)) {
+          artistMap.set(artist.mbid, {
+            mbid: artist.mbid,
+            name: artist.name,
+            // First few in the list are typically headliners (higher billing)
+            isHeadliner: i < Math.min(3, Math.ceil(totalArtists * 0.2)),
+          });
+        }
+      }
+
+      // Convert to array with headliners first
+      const artists = Array.from(artistMap.values()).sort((a, b) => {
+        if (a.isHeadliner && !b.isHeadliner) return -1;
+        if (!a.isHeadliner && b.isHeadliner) return 1;
+        return 0;
+      });
+
+      return { artists, venueId, date };
+    } catch (error) {
+      // Graceful degradation - return empty on any error
+      if (axios.isAxiosError(error)) {
+        if (error.response?.status === 404) {
+          return { artists: [], venueId, date };
+        }
+        if (error.response?.status === 429) {
+          logger.warn('Setlist.fm rate limited', { venueId, date });
+          return { artists: [], venueId, date };
+        }
+      }
+      logger.error('Setlist.fm venue lineup fetch failed', { venueId, date, error });
+      return { artists: [], venueId, date };
     }
   },
 };

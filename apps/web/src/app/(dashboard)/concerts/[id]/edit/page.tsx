@@ -5,12 +5,15 @@ import { useRouter, useParams } from 'next/navigation';
 import { useConcert, useUpdateConcert } from '@/lib/api/hooks/use-concerts';
 import { useArtists, useCreateArtistFromGenius, GeniusArtistResult } from '@/lib/api/hooks/use-artists';
 import { useVenues, useCreateVenueFromSetlist, SetlistFmVenueResult } from '@/lib/api/hooks/use-venues';
+import { useLineupSuggestions, useAddSuggestedArtists } from '@/lib/api/hooks/use-lineup-suggestions';
 import { Button } from '@/components/ui/button';
 import { TextInput } from '@/components/ui/text-input';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Spinner } from '@/components/ui/spinner';
 import { Modal } from '@/components/ui/modal';
+import { LineupIndicator } from '@/components/concerts/lineup-indicator';
+import { LineupSuggestionModal } from '@/components/concerts/lineup-suggestion-modal';
 import type { Artist, Venue } from '@encore/shared';
 
 interface SelectedArtist {
@@ -56,9 +59,21 @@ export default function EditConcertPage() {
   const [showArtistSearch, setShowArtistSearch] = useState(false);
   const [showVenueSearch, setShowVenueSearch] = useState(false);
 
+  // Lineup suggestion state
+  const [showLineupModal, setShowLineupModal] = useState(false);
+
   // API queries
   const { data: artistSearchResults, isLoading: artistsLoading } = useArtists(artistSearchQuery);
   const { data: venueSearchResults, isLoading: venuesLoading } = useVenues(venueSearchQuery);
+
+  // Lineup suggestions - fetch when venue and date are both set
+  const {
+    data: lineupData,
+    isLoading: lineupLoading,
+    isError: lineupError,
+  } = useLineupSuggestions(selectedVenue?.setlistFmId || null, concertDate || null);
+
+  const addSuggestedArtists = useAddSuggestedArtists();
 
   // Pre-populate form when concert data loads
   useEffect(() => {
@@ -69,11 +84,11 @@ export default function EditConcertPage() {
 
       // Set artists
       if (concert.artists && concert.artists.length > 0) {
-        const artists: SelectedArtist[] = concert.artists.map((ca) => ({
+        const artists: SelectedArtist[] = concert.artists.map((ca, index) => ({
           artistId: ca.artist.id,
           artist: ca.artist,
           isHeadliner: ca.isHeadliner,
-          setOrder: ca.setOrder,
+          setOrder: ca.setOrder ?? index + 1,
         }));
         setSelectedArtists(artists);
       }
@@ -192,10 +207,38 @@ export default function EditConcertPage() {
         },
       });
 
+      // Check if we have lineup suggestions to show
+      if (lineupData?.artists && lineupData.artists.length > 0) {
+        // Filter out artists already on the concert
+        const existingMbids = new Set(
+          selectedArtists.map((a) => a.artist.mbid).filter(Boolean)
+        );
+        const availableSuggestions = lineupData.artists.filter(
+          (a) => !existingMbids.has(a.mbid)
+        );
+        if (availableSuggestions.length > 0) {
+          setShowLineupModal(true);
+          return;
+        }
+      }
+
       router.push(`/concerts/${concertId}`);
     } catch (error) {
       console.error('Failed to update concert:', error);
     }
+  };
+
+  const handleLineupConfirm = async (
+    artists: Array<{ mbid: string; name: string; isHeadliner: boolean }>
+  ) => {
+    await addSuggestedArtists.mutateAsync({ concertId, artists });
+    setShowLineupModal(false);
+    router.push(`/concerts/${concertId}`);
+  };
+
+  const handleLineupSkip = () => {
+    setShowLineupModal(false);
+    router.push(`/concerts/${concertId}`);
   };
 
   const isFormValid = concertDate && selectedArtists.length > 0;
@@ -370,28 +413,38 @@ export default function EditConcertPage() {
             </CardHeader>
             <CardContent>
               {selectedVenue ? (
-                <div className="flex items-start justify-between p-3 bg-gray-50 dark:bg-slate-700 rounded-lg">
-                  <div className="flex-1">
-                    <h4 className="font-medium text-gray-900 dark:text-white">{selectedVenue.name}</h4>
-                    {(selectedVenue.city || selectedVenue.state) && (
-                      <p className="text-sm text-gray-600 dark:text-gray-400">
-                        {[selectedVenue.city, selectedVenue.state, selectedVenue.country]
-                          .filter(Boolean)
-                          .join(', ')}
-                      </p>
-                    )}
+                <>
+                  <div className="flex items-start justify-between p-3 bg-gray-50 dark:bg-slate-700 rounded-lg">
+                    <div className="flex-1">
+                      <h4 className="font-medium text-gray-900 dark:text-white">{selectedVenue.name}</h4>
+                      {(selectedVenue.city || selectedVenue.state) && (
+                        <p className="text-sm text-gray-600 dark:text-gray-400">
+                          {[selectedVenue.city, selectedVenue.state, selectedVenue.country]
+                            .filter(Boolean)
+                            .join(', ')}
+                        </p>
+                      )}
+                    </div>
+                    <Button
+                      type="button"
+                      onClick={() => setSelectedVenue(null)}
+                      variant="ghost"
+                      size="sm"
+                    >
+                      <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </Button>
                   </div>
-                  <Button
-                    type="button"
-                    onClick={() => setSelectedVenue(null)}
-                    variant="ghost"
-                    size="sm"
-                  >
-                    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                  </Button>
-                </div>
+                  {/* Lineup indicator - shows when venue + date are set */}
+                  {concertDate && (
+                    <LineupIndicator
+                      artistCount={lineupData?.artists?.length ?? null}
+                      isLoading={lineupLoading}
+                      isError={lineupError}
+                    />
+                  )}
+                </>
               ) : (
                 <Button
                   type="button"
@@ -615,6 +668,16 @@ export default function EditConcertPage() {
           )}
         </div>
       </Modal>
+
+      {/* Lineup Suggestion Modal - shown after save if suggestions available */}
+      <LineupSuggestionModal
+        isOpen={showLineupModal}
+        onClose={handleLineupSkip}
+        suggestedArtists={lineupData?.artists || []}
+        existingArtistMbids={selectedArtists.map((a) => a.artist.mbid)}
+        onConfirm={handleLineupConfirm}
+        isLoading={addSuggestedArtists.isPending}
+      />
     </div>
   );
 }
