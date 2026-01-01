@@ -10,8 +10,23 @@ import { Logger } from '../utils/logger';
 
 const logger = new Logger('S3Service');
 
+const useLocalStack = configService.get('USE_LOCALSTACK');
+const localStackEndpoint = configService.get('LOCALSTACK_ENDPOINT');
+
+if (useLocalStack) {
+  logger.info('Using LocalStack S3', { endpoint: localStackEndpoint });
+}
+
 const client = new S3Client({
   region: configService.get('AWS_REGION'),
+  ...(useLocalStack && {
+    endpoint: localStackEndpoint,
+    forcePathStyle: true, // Required for LocalStack
+    credentials: {
+      accessKeyId: 'test',
+      secretAccessKey: 'test',
+    },
+  }),
 });
 
 const bucketName = configService.get('S3_BUCKET_NAME');

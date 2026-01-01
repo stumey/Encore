@@ -1,37 +1,31 @@
 #!/bin/bash
 
-# Create S3 bucket for concert photos
-awslocal s3 mb s3://encore-photos
+# LocalStack S3 Initialization Script
+# This script runs automatically when LocalStack starts
 
-# Create S3 bucket for ticket PDFs
-awslocal s3 mb s3://encore-tickets
+echo "Initializing LocalStack S3..."
 
-# Configure CORS for the photos bucket
-awslocal s3api put-bucket-cors --bucket encore-photos --cors-configuration '{
+# Create S3 bucket for concert media (photos/videos)
+awslocal s3 mb s3://encore-media
+
+# Configure CORS for browser-based uploads
+awslocal s3api put-bucket-cors --bucket encore-media --cors-configuration '{
   "CORSRules": [
     {
       "AllowedOrigins": ["http://localhost:3000", "http://localhost:8081"],
-      "AllowedMethods": ["GET", "PUT", "POST", "DELETE"],
+      "AllowedMethods": ["GET", "PUT", "POST", "DELETE", "HEAD"],
       "AllowedHeaders": ["*"],
-      "ExposeHeaders": ["ETag"],
+      "ExposeHeaders": ["ETag", "Content-Length", "Content-Type"],
       "MaxAgeSeconds": 3000
     }
   ]
 }'
 
-# Create Cognito User Pool
-awslocal cognito-idp create-user-pool \
-  --pool-name encore-users \
-  --auto-verified-attributes email \
-  --username-attributes email \
-  --policies '{
-    "PasswordPolicy": {
-      "MinimumLength": 8,
-      "RequireUppercase": true,
-      "RequireLowercase": true,
-      "RequireNumbers": true,
-      "RequireSymbols": false
-    }
-  }'
+# Verify bucket was created
+echo ""
+echo "Created S3 buckets:"
+awslocal s3 ls
 
-echo "LocalStack initialization complete!"
+echo ""
+echo "LocalStack S3 initialization complete!"
+echo "Bucket 'encore-media' is ready for uploads at http://localhost:4566"

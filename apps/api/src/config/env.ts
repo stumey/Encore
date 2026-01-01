@@ -9,6 +9,10 @@ const envSchema = z.object({
   PORT: z.string().transform(Number).default('3000'),
   API_VERSION: z.string().default('v1'),
 
+  // LocalStack (for local S3 development)
+  USE_LOCALSTACK: z.string().transform(v => v === 'true').default('false'),
+  LOCALSTACK_ENDPOINT: z.string().default('http://localhost:4566'),
+
   // AWS
   AWS_REGION: z.string(),
   AWS_ACCESS_KEY_ID: z.string().optional(),
