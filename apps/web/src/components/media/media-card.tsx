@@ -50,9 +50,9 @@ export function MediaCard({
   return (
     <div
       className={`
-        relative group cursor-pointer rounded-lg overflow-hidden bg-gray-100
+        relative group cursor-pointer rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800
         transition-all duration-200 hover:shadow-lg
-        ${selected ? 'ring-4 ring-primary-500' : 'ring-1 ring-gray-200 hover:ring-gray-300'}
+        ${selected ? 'ring-4 ring-primary-500' : 'ring-1 ring-gray-200 dark:ring-gray-700 hover:ring-gray-300 dark:hover:ring-gray-600'}
       `}
       onClick={handleCardClick}
     >
@@ -68,7 +68,7 @@ export function MediaCard({
             loading="lazy"
           />
         ) : (
-          <div className="w-full h-full flex items-center justify-center bg-gray-200">
+          <div className="w-full h-full flex items-center justify-center bg-gray-200 dark:bg-gray-700">
             <svg
               className="h-12 w-12 text-gray-400"
               fill="none"
@@ -119,7 +119,7 @@ export function MediaCard({
                 transition-all cursor-pointer
                 ${selected
                   ? 'bg-primary-600 border-primary-600'
-                  : 'bg-white border-gray-300 hover:border-primary-400'
+                  : 'bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-500 hover:border-primary-400'
                 }
               `}
             >
@@ -143,11 +143,11 @@ export function MediaCard({
       </div>
 
       {/* Metadata footer */}
-      <div className="p-2 bg-white">
-        <p className="text-xs text-gray-900 font-medium truncate">
+      <div className="p-2 bg-white dark:bg-gray-800">
+        <p className="text-xs text-gray-900 dark:text-white font-medium truncate">
           {media.originalFilename || 'Untitled'}
         </p>
-        <p className="text-xs text-gray-500">
+        <p className="text-xs text-gray-500 dark:text-gray-400">
           {takenAt ? formatDate(takenAt) : 'Date unknown'}
         </p>
         {media.concertId && (

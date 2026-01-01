@@ -46,10 +46,10 @@ export default function ConcertDetailPage() {
 
   if (concertError) {
     return (
-      <div className="min-h-screen bg-gray-50 p-8">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-8">
         <div className="max-w-5xl mx-auto">
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-            <p className="text-red-800">Error loading concert: {concertError.message}</p>
+          <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
+            <p className="text-red-800 dark:text-red-400">Error loading concert: {concertError.message}</p>
           </div>
         </div>
       </div>
@@ -58,7 +58,7 @@ export default function ConcertDetailPage() {
 
   if (concertLoading || !concert) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
         <Spinner size="lg" />
       </div>
     );
@@ -76,9 +76,9 @@ export default function ConcertDetailPage() {
   const headlinerArtist = concert.artists.find(a => a.isHeadliner)?.artist || concert.artists[0]?.artist;
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       {/* Header */}
-      <div className="bg-white border-b border-gray-200">
+      <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="flex items-start justify-between">
             <div className="flex-1">
@@ -114,7 +114,7 @@ export default function ConcertDetailPage() {
                 )}
                 <div className="flex-1">
                   <div className="flex items-center gap-3 mb-2">
-                    <h1 className="text-3xl font-bold text-gray-900">
+                    <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
                       {concert.artists[0]?.artist.name || 'Concert'}
                     </h1>
                     {concert.isVerified && (
@@ -124,7 +124,7 @@ export default function ConcertDetailPage() {
                     )}
                   </div>
 
-                  <div className="flex flex-col gap-2 text-gray-600">
+                  <div className="flex flex-col gap-2 text-gray-600 dark:text-gray-300">
                     <div className="flex items-center gap-2">
                       <svg
                         className="h-5 w-5"
@@ -166,7 +166,7 @@ export default function ConcertDetailPage() {
                         <span>
                           {concert.venue.name}
                           {(concert.venue.city || concert.venue.state) && (
-                            <span className="text-gray-500">
+                            <span className="text-gray-500 dark:text-gray-400">
                               {' '}• {[concert.venue.city, concert.venue.state].filter(Boolean).join(', ')}
                             </span>
                           )}
@@ -235,7 +235,7 @@ export default function ConcertDetailPage() {
               <CardTitle>Notes</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-gray-700 whitespace-pre-wrap">{concert.notes}</p>
+              <p className="text-gray-700 dark:text-gray-300 whitespace-pre-wrap">{concert.notes}</p>
             </CardContent>
           </Card>
         )}
@@ -249,7 +249,7 @@ export default function ConcertDetailPage() {
             <CardTitle>
               Media
               {media.length > 0 && (
-                <span className="ml-2 text-sm font-normal text-gray-500">
+                <span className="ml-2 text-sm font-normal text-gray-500 dark:text-gray-400">
                   ({media.length})
                 </span>
               )}
@@ -261,13 +261,13 @@ export default function ConcertDetailPage() {
                 <Spinner size="md" />
               </div>
             ) : media.length === 0 ? (
-              <p className="text-sm text-gray-500">No photos or videos from this concert yet.</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">No photos or videos from this concert yet.</p>
             ) : (
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                 {media.map((item) => (
                   <div
                     key={item.id}
-                    className="relative aspect-square rounded-lg overflow-hidden bg-gray-100 group cursor-pointer"
+                    className="relative aspect-square rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-700 group cursor-pointer"
                   >
                     <img
                       src={item.thumbnailUrl || item.downloadUrl}
@@ -300,8 +300,8 @@ export default function ConcertDetailPage() {
           <CardContent>
             <dl className="grid grid-cols-2 gap-4 text-sm">
               <div>
-                <dt className="text-gray-500">Added</dt>
-                <dd className="text-gray-900 font-medium mt-1">
+                <dt className="text-gray-500 dark:text-gray-400">Added</dt>
+                <dd className="text-gray-900 dark:text-white font-medium mt-1">
                   {new Date(concert.createdAt).toLocaleDateString('en-US', {
                     year: 'numeric',
                     month: 'long',
@@ -311,8 +311,8 @@ export default function ConcertDetailPage() {
               </div>
               {concert.confidenceScore !== null && (
                 <div>
-                  <dt className="text-gray-500">Confidence Score</dt>
-                  <dd className="text-gray-900 font-medium mt-1">
+                  <dt className="text-gray-500 dark:text-gray-400">Confidence Score</dt>
+                  <dd className="text-gray-900 dark:text-white font-medium mt-1">
                     {(concert.confidenceScore * 100).toFixed(0)}%
                   </dd>
                 </div>
@@ -330,7 +330,7 @@ export default function ConcertDetailPage() {
         description="Are you sure you want to delete this concert? This action cannot be undone."
       >
         <div className="py-4">
-          <p className="text-sm text-gray-600">
+          <p className="text-sm text-gray-600 dark:text-gray-300">
             This will permanently delete the concert and all associated data.
           </p>
         </div>

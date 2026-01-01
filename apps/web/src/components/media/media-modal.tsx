@@ -168,11 +168,11 @@ export function MediaModal({
         </div>
 
         {/* Metadata sidebar */}
-        <div className="w-full md:w-80 p-6 bg-gray-50 overflow-y-auto">
+        <div className="w-full md:w-80 p-6 bg-gray-50 dark:bg-gray-800 overflow-y-auto">
           <div className="space-y-6">
             {/* Title and badges */}
             <div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
                 {media.originalFilename || 'Untitled'}
               </h3>
               <div className="flex gap-2 flex-wrap">
@@ -191,10 +191,10 @@ export function MediaModal({
             {/* Metadata */}
             <div className="space-y-3">
               <div>
-                <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+                <p className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
                   Date Taken
                 </p>
-                <p className="text-sm text-gray-900 mt-1">
+                <p className="text-sm text-gray-900 dark:text-white mt-1">
                   {takenAt
                     ? takenAt.toLocaleString('en-US', {
                         month: 'long',
@@ -209,10 +209,10 @@ export function MediaModal({
 
               {isVideo && media.duration && (
                 <div>
-                  <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+                  <p className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
                     Duration
                   </p>
-                  <p className="text-sm text-gray-900 mt-1">
+                  <p className="text-sm text-gray-900 dark:text-white mt-1">
                     {formatDuration(media.duration)}
                   </p>
                 </div>
@@ -220,20 +220,20 @@ export function MediaModal({
 
               {(media.locationLat && media.locationLng) && (
                 <div>
-                  <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+                  <p className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
                     Location
                   </p>
-                  <p className="text-sm text-gray-900 mt-1">
+                  <p className="text-sm text-gray-900 dark:text-white mt-1">
                     {media.locationLat.toFixed(6)}, {media.locationLng.toFixed(6)}
                   </p>
                 </div>
               )}
 
               <div>
-                <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+                <p className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
                   Uploaded
                 </p>
-                <p className="text-sm text-gray-900 mt-1">
+                <p className="text-sm text-gray-900 dark:text-white mt-1">
                   {new Date(media.createdAt).toLocaleString('en-US', {
                     month: 'long',
                     day: 'numeric',
@@ -249,7 +249,7 @@ export function MediaModal({
             )}
 
             {/* Actions */}
-            <div className="pt-4 border-t border-gray-200 space-y-3">
+            <div className="pt-4 border-t border-gray-200 dark:border-gray-700 space-y-3">
               <a
                 href={media.downloadUrl}
                 download={media.originalFilename || 'download'}
