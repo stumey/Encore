@@ -28,6 +28,25 @@ export default function ProfilePage() {
     displayName: '',
     username: '',
   });
+  const [errors, setErrors] = useState<{ displayName?: string; username?: string }>({});
+
+  // Validation rules (match backend)
+  const validateForm = () => {
+    const newErrors: { displayName?: string; username?: string } = {};
+
+    if (formData.username && formData.username.length < 3) {
+      newErrors.username = 'Username must be at least 3 characters';
+    } else if (formData.username && formData.username.length > 30) {
+      newErrors.username = 'Username must be 30 characters or less';
+    }
+
+    if (formData.displayName && formData.displayName.length > 100) {
+      newErrors.displayName = 'Display name must be 100 characters or less';
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   // Initialize form when user loads
   const handleEditStart = () => {
@@ -35,13 +54,19 @@ export default function ProfilePage() {
       displayName: user?.displayName || '',
       username: user?.username || '',
     });
+    setErrors({});
     setIsEditing(true);
   };
 
   const handleSave = async () => {
+    if (!validateForm()) {
+      return;
+    }
+
     try {
       await updateProfile.mutateAsync(formData);
       setIsEditing(false);
+      setErrors({});
     } catch (error) {
       console.error('Failed to update profile:', error);
     }
@@ -90,11 +115,19 @@ export default function ProfilePage() {
               {/* Profile Info */}
               {isEditing ? (
                 <div className="flex-1 space-y-4">
+                  {(errors.displayName || errors.username) && (
+                    <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+                      <p className="text-sm text-red-600 dark:text-red-400">
+                        Please fix the errors below before saving.
+                      </p>
+                    </div>
+                  )}
                   <TextInput
                     label="Display Name"
                     value={formData.displayName}
                     onChange={(e) => setFormData(prev => ({ ...prev, displayName: e.target.value }))}
                     placeholder="Your display name"
+                    error={errors.displayName}
                     fullWidth
                   />
                   <TextInput
@@ -102,6 +135,8 @@ export default function ProfilePage() {
                     value={formData.username}
                     onChange={(e) => setFormData(prev => ({ ...prev, username: e.target.value }))}
                     placeholder="your-username"
+                    error={errors.username}
+                    helperText={!errors.username ? "3-30 characters" : undefined}
                     fullWidth
                   />
                   <div className="flex gap-3">
