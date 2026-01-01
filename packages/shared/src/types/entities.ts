@@ -1,4 +1,4 @@
-import { MediaType, TicketSource } from './enums';
+import { MediaType, TicketSource, AnalysisStatus } from './enums';
 
 export interface User {
   id: string;
@@ -64,6 +64,10 @@ export interface Media {
   locationLat: number | null;
   locationLng: number | null;
   aiAnalysis: AiAnalysis | null;
+  analysisStatus: AnalysisStatus;
+  analysisStartedAt: Date | string | null;
+  analysisCompletedAt: Date | string | null;
+  analysisError: string | null;
   createdAt: Date | string;
 }
 

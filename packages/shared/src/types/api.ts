@@ -65,6 +65,7 @@ export interface VenueWithConcerts extends Venue {
 export interface MediaWithUrls extends Media {
   downloadUrl: string;
   thumbnailUrl: string | null;
+  retryAfter?: number | null;
   concert?: (Pick<Concert, 'id' | 'concertDate'> & {
     artists: (ConcertArtist & { artist: Pick<Artist, 'id' | 'name'> })[];
   }) | null;

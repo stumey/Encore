@@ -50,3 +50,12 @@ export const TicketSource = {
 } as const;
 
 export type TicketSource = (typeof TicketSource)[keyof typeof TicketSource];
+
+export const AnalysisStatus = {
+  pending: 'pending',
+  processing: 'processing',
+  completed: 'completed',
+  failed: 'failed',
+} as const;
+
+export type AnalysisStatus = (typeof AnalysisStatus)[keyof typeof AnalysisStatus];
