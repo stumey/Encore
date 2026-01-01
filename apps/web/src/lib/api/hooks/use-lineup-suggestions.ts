@@ -10,7 +10,7 @@ import type {
 } from '@encore/shared';
 
 // Re-export for component imports
-export type { LineupArtist, VenueLineupResponse } from '@encore/shared';
+export type { LineupArtist, VenueLineupResponse, EventDay } from '@encore/shared';
 
 const LINEUP_KEYS = {
   all: ['lineup'] as const,

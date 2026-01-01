@@ -614,6 +614,9 @@ export default function NewConcertPage() {
         existingArtistMbids={selectedArtists.map(a => a.artist.mbid)}
         onConfirm={handleLineupConfirm}
         isLoading={addSuggestedArtists.isPending}
+        eventDays={lineupData?.eventDays}
+        isMultiDay={lineupData?.isMultiDay}
+        queriedDate={lineupData?.queriedDate}
       />
     </div>
   );

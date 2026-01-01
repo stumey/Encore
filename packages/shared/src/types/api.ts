@@ -75,11 +75,20 @@ export interface LineupArtist {
   mbid: string;
   name: string;
   isHeadliner: boolean;
+  performanceDates: string[]; // dates this artist performed (dd-MM-yyyy format)
+}
+
+export interface EventDay {
+  date: string; // dd-MM-yyyy format
+  displayDate: string; // Human readable: "Fri, Jun 27"
+  artistCount: number;
 }
 
 export interface VenueLineupResponse {
   artists: LineupArtist[];
   eventName?: string;
   venueId: string;
-  date: string;
+  queriedDate: string; // original date user selected
+  eventDays: EventDay[]; // all days with events at this venue
+  isMultiDay: boolean;
 }
