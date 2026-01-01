@@ -13,8 +13,9 @@ help:
 	@echo "  make dev-reset    - Reset local infrastructure (removes all data)"
 	@echo ""
 	@echo "Database:"
-	@echo "  make db-migrate   - Run database migrations"
-	@echo "  make db-create    - Create a new migration (usage: make db-create name=description)"
+	@echo "  make db-push      - Sync Prisma schema to database (quick dev)"
+	@echo "  make db-migrate   - Create and apply Prisma migrations"
+	@echo "  make db-deploy    - Apply migrations (production)"
 	@echo ""
 	@echo "Build & Test:"
 	@echo "  make build        - Build all apps"
@@ -25,6 +26,7 @@ help:
 	@echo "Apps:"
 	@echo "  make web          - Start web app only"
 	@echo "  make api          - Start API only"
+	@echo "  make api-local    - Start API with LocalStack S3"
 	@echo "  make mobile       - Start mobile app only"
 
 # ==================== Development ====================
@@ -55,21 +57,14 @@ dev-reset:
 
 # ==================== Database ====================
 
-db-migrate:
-	cd .dev && docker-compose run --rm flyway migrate
+db-push:
+	cd apps/api && npx prisma db push
 
-db-create:
-	@if [ -z "$(name)" ]; then \
-		echo "Usage: make db-create name=description"; \
-		exit 1; \
-	fi
-	@version=$$(ls db/migrations/V*.sql 2>/dev/null | wc -l | tr -d ' '); \
-	version=$$((version + 1)); \
-	filename="db/migrations/V$${version}__$(name).sql"; \
-	echo "-- Migration: $(name)" > $$filename; \
-	echo "-- Created: $$(date)" >> $$filename; \
-	echo "" >> $$filename; \
-	echo "Created: $$filename"
+db-migrate:
+	cd apps/api && npx prisma migrate dev
+
+db-deploy:
+	cd apps/api && npx prisma migrate deploy
 
 # ==================== Build & Test ====================
 
@@ -95,6 +90,9 @@ web:
 
 api:
 	npm run dev --workspace=apps/api
+
+api-local:
+	npm run dev:local --workspace=apps/api
 
 mobile:
 	npm run dev --workspace=apps/mobile
