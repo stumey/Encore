@@ -54,10 +54,10 @@ router.get(
         country: v.city?.country?.name || null,
       }));
 
-      res.json({ data: results, source: 'setlistfm' });
+      return res.json({ data: results, source: 'setlistfm' });
     } catch (error) {
       logger.error('Setlist.fm venue search failed, returning empty', { query, error });
-      res.json({ data: [], source: 'error' });
+      return res.json({ data: [], source: 'error' });
     }
   })
 );

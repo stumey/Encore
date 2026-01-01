@@ -103,6 +103,13 @@ enum MediaType {
   video
 }
 
+enum AnalysisStatus {
+  pending
+  processing
+  completed
+  failed
+}
+
 // Media (photos/videos uploaded by users, analyzed by AI)
 model Media {
   id               String    @id @default(uuid())
@@ -116,8 +123,12 @@ model Media {
   takenAt          DateTime? @map("taken_at")
   locationLat      Decimal?  @map("location_lat")
   locationLng      Decimal?  @map("location_lng")
-  aiAnalysis       Json?     @map("ai_analysis")
-  createdAt        DateTime  @default(now()) @map("created_at")
+  aiAnalysis          Json?          @map("ai_analysis")
+  analysisStatus      AnalysisStatus @default(pending) @map("analysis_status")
+  analysisStartedAt   DateTime?      @map("analysis_started_at")
+  analysisCompletedAt DateTime?      @map("analysis_completed_at")
+  analysisError       String?        @map("analysis_error")
+  createdAt           DateTime       @default(now()) @map("created_at")
 
   concert Concert? @relation(fields: [concertId], references: [id], onDelete: SetNull)
   user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)

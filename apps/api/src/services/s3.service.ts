@@ -53,6 +53,26 @@ export const s3Service = {
     return url;
   },
 
+  async getObject(key: string): Promise<Buffer | null> {
+    try {
+      const command = new GetObjectCommand({
+        Bucket: bucketName,
+        Key: key,
+      });
+      const response = await client.send(command);
+      if (!response.Body) return null;
+
+      const chunks: Uint8Array[] = [];
+      for await (const chunk of response.Body as AsyncIterable<Uint8Array>) {
+        chunks.push(chunk);
+      }
+      return Buffer.concat(chunks);
+    } catch (error) {
+      logger.error('Failed to get S3 object', error as Error, { key });
+      return null;
+    }
+  },
+
   async deleteObject(key: string): Promise<void> {
     const command = new DeleteObjectCommand({
       Bucket: bucketName,

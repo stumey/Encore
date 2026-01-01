@@ -35,6 +35,12 @@ const envSchema = z.object({
   GENIUS_CLIENT_ID: z.string().optional(),
   GENIUS_CLIENT_SECRET: z.string().optional(),
 
+  // Audio Recognition
+  ACRCLOUD_HOST: z.string().optional(),
+  ACRCLOUD_ACCESS_KEY: z.string().optional(),
+  ACRCLOUD_SECRET_KEY: z.string().optional(),
+  AUDD_API_KEY: z.string().optional(),
+
   // Logging
   LOG_LEVEL: z.enum(['error', 'warn', 'info', 'debug']).default('info'),
 

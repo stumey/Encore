@@ -51,10 +51,10 @@ router.get(
         genres: [],
       }));
 
-      res.json({ data: results, source: 'genius' });
+      return res.json({ data: results, source: 'genius' });
     } catch (error) {
       logger.error('Genius artist search failed, returning empty', { query, error });
-      res.json({ data: [], source: 'error' });
+      return res.json({ data: [], source: 'error' });
     }
   })
 );

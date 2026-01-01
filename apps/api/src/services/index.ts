@@ -9,5 +9,7 @@ export {
 } from './claude.service';
 export { setlistService, type Setlist, type SetlistArtist } from './setlist.service';
 export { geniusService, type GeniusArtist } from './genius.service';
-
-// Future: Audio recognition service (Shazam/ACRCloud) for identifying songs from video audio
+export { exifService, type ExifMetadata } from './exif.service';
+export { acrcloudService, type ACRCloudMatch } from './acrcloud.service';
+export { auddService, type AudDMatch } from './audd.service';
+export { ffmpegService } from './ffmpeg.service';

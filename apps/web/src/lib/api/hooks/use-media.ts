@@ -30,6 +30,25 @@ const MEDIA_KEYS = {
 };
 
 /**
+ * Get single media item with server-driven polling during analysis
+ */
+export function useMediaItem(id: string | null) {
+  return useQuery({
+    queryKey: MEDIA_KEYS.detail(id || ''),
+    queryFn: async () => {
+      if (!id) return null;
+      const response = await apiClient.get<ApiResponse<MediaWithUrls>>(`/media/${id}`);
+      return response.data;
+    },
+    enabled: !!id,
+    refetchInterval: (query) => {
+      const data = query.state.data;
+      return data?.retryAfter || false;
+    },
+  });
+}
+
+/**
  * Get paginated list of media
  * GET /media?page=1&limit=20&concertId=...&mediaType=...
  */
