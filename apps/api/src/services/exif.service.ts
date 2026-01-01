@@ -4,8 +4,8 @@ import { Logger } from '../utils/logger';
 const logger = new Logger('ExifService');
 
 export interface ExifMetadata {
-  latitude: number;
-  longitude: number;
+  latitude?: number;
+  longitude?: number;
   takenAt: Date | null;
   make: string | null;
   model: string | null;
@@ -14,7 +14,7 @@ export interface ExifMetadata {
 export const exifService = {
   /**
    * Extract EXIF metadata from photo/video buffer
-   * Returns null if no GPS data found (minimum viable for our use case)
+   * Returns metadata with whatever fields are available (date, GPS, device info)
    */
   async extract(buffer: Buffer): Promise<ExifMetadata | null> {
     try {
@@ -23,20 +23,27 @@ export const exifService = {
         gps: true,
       });
 
-      if (!data?.latitude || !data?.longitude) {
-        logger.debug('No GPS data in EXIF');
+      if (!data) {
+        logger.debug('No EXIF data found');
         return null;
       }
 
+      const takenAt = data.DateTimeOriginal ?? data.CreateDate ?? null;
+      const hasGps = data.latitude && data.longitude;
+
       const metadata: ExifMetadata = {
-        latitude: data.latitude,
-        longitude: data.longitude,
-        takenAt: data.DateTimeOriginal ?? data.CreateDate ?? null,
+        ...(hasGps && { latitude: data.latitude, longitude: data.longitude }),
+        takenAt,
         make: data.Make ?? null,
         model: data.Model ?? null,
       };
 
-      logger.debug('EXIF extracted', { lat: metadata.latitude, lng: metadata.longitude });
+      logger.debug('EXIF extracted', {
+        hasGps,
+        hasTakenAt: !!takenAt,
+        ...(hasGps && { lat: data.latitude, lng: data.longitude }),
+      });
+
       return metadata;
     } catch (error) {
       logger.warn('EXIF extraction failed', { error: (error as Error).message });

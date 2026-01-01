@@ -1,5 +1,6 @@
 import { spawn, ChildProcess } from 'child_process';
 import ffmpegPath from 'ffmpeg-static';
+import ffprobePath from 'ffprobe-static';
 import { Logger } from '../utils/logger';
 
 const logger = new Logger('FfmpegService');
@@ -8,7 +9,94 @@ const AUDIO_SAMPLE_DURATION = 15;
 const AUDIO_SAMPLE_RATE = 44100;
 const MAX_FRAMES = 5;
 
+// Tag names that may contain creation/recording date, in order of preference
+const DATE_TAG_NAMES = [
+  'com.apple.quicktime.creationdate', // iOS
+  'creation_time',                     // Generic MOV/MP4
+  'date',                              // Some formats
+  'date_recorded',                     // Some formats
+  'encoded_date',                      // MKV
+];
+
+export interface VideoMetadata {
+  creationTime: Date | null;
+  duration: number | null;
+}
+
 export const ffmpegService = {
+  /**
+   * Extract metadata from video buffer using ffprobe JSON output
+   */
+  async extractMetadata(videoBuffer: Buffer): Promise<VideoMetadata | null> {
+    if (!ffprobePath?.path) {
+      logger.warn('ffprobe binary not found');
+      return null;
+    }
+
+    return new Promise((resolve) => {
+      const stdoutChunks: Buffer[] = [];
+
+      const proc: ChildProcess = spawn(ffprobePath.path, [
+        '-v', 'quiet',
+        '-print_format', 'json',
+        '-show_format',
+        '-i', 'pipe:0',
+      ]);
+
+      proc.stdout?.on('data', (chunk: Buffer) => stdoutChunks.push(chunk));
+      proc.stderr?.on('data', () => {});
+
+      proc.on('close', (code) => {
+        if (code !== 0 || stdoutChunks.length === 0) {
+          logger.debug('ffprobe returned no data', { code });
+          resolve(null);
+          return;
+        }
+
+        try {
+          const json = JSON.parse(Buffer.concat(stdoutChunks).toString());
+          const tags = json.format?.tags || {};
+
+          // Duration from format
+          const duration = json.format?.duration
+            ? Math.floor(parseFloat(json.format.duration))
+            : null;
+
+          // Try each date tag in order of preference
+          let creationTime: Date | null = null;
+          for (const tagName of DATE_TAG_NAMES) {
+            const value = tags[tagName];
+            if (value) {
+              const parsed = new Date(value);
+              if (!isNaN(parsed.getTime())) {
+                creationTime = parsed;
+                logger.debug('Found creation time', { tagName, value });
+                break;
+              }
+            }
+          }
+
+          logger.debug('Video metadata parsed', { creationTime, duration, availableTags: Object.keys(tags) });
+
+          resolve(creationTime || duration ? { creationTime, duration } : null);
+        } catch (err) {
+          logger.warn('Failed to parse ffprobe JSON', { error: (err as Error).message });
+          resolve(null);
+        }
+      });
+
+      proc.on('error', (err) => {
+        logger.warn('ffprobe error', { error: err.message });
+        resolve(null);
+      });
+
+      proc.stdin?.on('error', () => {});
+      proc.stdin?.write(videoBuffer, (err) => {
+        if (!err) proc.stdin?.end();
+      });
+    });
+  },
+
   /**
    * Extract multiple frames from video at even intervals
    * Returns array of JPEG buffers for visual analysis

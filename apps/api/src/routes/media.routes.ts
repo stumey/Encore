@@ -17,8 +17,11 @@ const router = Router();
  * Combines EXIF metadata, Setlist.fm lookup, and Claude visual analysis
  */
 async function runAnalysisInBackground(mediaId: string): Promise<void> {
+  let media;
+  let exif: Awaited<ReturnType<typeof exifService.extract>> = null;
+
   try {
-    const media = await prisma.media.update({
+    media = await prisma.media.update({
       where: { id: mediaId },
       data: {
         analysisStatus: 'processing',
@@ -29,14 +32,84 @@ async function runAnalysisInBackground(mediaId: string): Promise<void> {
 
     logger.info('Starting analysis', { mediaId, mediaType: media.mediaType });
 
-    // Parallel: Get buffer for EXIF + presigned URL for Claude
-    const [mediaBuffer, mediaUrl] = await Promise.all([
-      s3Service.getObject(media.storagePath),
-      s3Service.generateDownloadUrl(media.storagePath),
-    ]);
+    // Get buffer for EXIF extraction
+    const mediaBuffer = await s3Service.getObject(media.storagePath);
 
-    // Extract EXIF (fast, local operation)
-    const exif = mediaBuffer ? await exifService.extract(mediaBuffer) : null;
+    // Extract metadata first and save immediately
+    // This ensures we get the date even if Claude analysis fails
+    if (mediaBuffer) {
+      let takenAtFromMetadata: Date | null = null;
+      let durationFromMetadata: number | null = null;
+      let thumbnailPath: string | null = null;
+
+      if (media.mediaType === 'video') {
+        // For videos, use FFmpeg to extract creation time and generate thumbnail
+        const videoMeta = await ffmpegService.extractMetadata(mediaBuffer);
+        if (videoMeta) {
+          takenAtFromMetadata = videoMeta.creationTime;
+          durationFromMetadata = videoMeta.duration;
+          logger.info('Video metadata extracted', {
+            mediaId,
+            creationTime: videoMeta.creationTime,
+            duration: videoMeta.duration,
+          });
+        }
+
+        // Generate thumbnail from video (at 1 second to skip potential black frames)
+        if (!media.thumbnailPath) {
+          try {
+            const thumbnailBuffer = await ffmpegService.extractFrameAt(mediaBuffer, 1);
+            if (thumbnailBuffer) {
+              const lastDot = media.storagePath.lastIndexOf('.');
+              const basePath = lastDot > 0 ? media.storagePath.substring(0, lastDot) : media.storagePath;
+              thumbnailPath = `${basePath}_thumb.jpg`;
+              await s3Service.uploadBuffer(thumbnailBuffer, thumbnailPath, 'image/jpeg');
+              logger.info('Video thumbnail generated', { mediaId, thumbnailPath });
+            }
+          } catch (err) {
+            logger.warn('Failed to generate video thumbnail', { mediaId, error: (err as Error).message });
+          }
+        }
+      } else {
+        // For photos, use EXIF
+        exif = await exifService.extract(mediaBuffer);
+        if (exif) {
+          takenAtFromMetadata = exif.takenAt;
+        }
+      }
+
+      // Build update object with extracted metadata
+      const hasUpdates =
+        (!media.takenAt && takenAtFromMetadata) ||
+        (!media.duration && durationFromMetadata) ||
+        thumbnailPath ||
+        exif?.latitude ||
+        exif?.longitude;
+
+      if (hasUpdates) {
+        await prisma.media.update({
+          where: { id: mediaId },
+          data: {
+            ...(!media.takenAt && takenAtFromMetadata && { takenAt: takenAtFromMetadata }),
+            ...(!media.duration && durationFromMetadata && { duration: durationFromMetadata }),
+            ...(thumbnailPath && { thumbnailPath }),
+            ...(exif?.latitude && { locationLat: exif.latitude }),
+            ...(exif?.longitude && { locationLng: exif.longitude }),
+          },
+        });
+        logger.info('Metadata saved', {
+          mediaId,
+          hasTakenAt: !!(takenAtFromMetadata && !media.takenAt),
+          hasDuration: !!(durationFromMetadata && !media.duration),
+          hasThumbnail: !!thumbnailPath,
+          hasGps: !!(exif?.latitude && exif?.longitude),
+        });
+      }
+    }
+
+    // Get presigned URL for Claude
+    const mediaUrl = await s3Service.generateDownloadUrl(media.storagePath);
+
     const takenAt = exif?.takenAt ?? media.takenAt;
     const lat = exif?.latitude ?? (media.locationLat ? Number(media.locationLat) : undefined);
     const lng = exif?.longitude ?? (media.locationLng ? Number(media.locationLng) : undefined);
@@ -73,22 +146,23 @@ async function runAnalysisInBackground(mediaId: string): Promise<void> {
       exifExtracted: !!exif,
     };
 
-    // Update with results + extracted EXIF
+    // Update with AI analysis results
     await prisma.media.update({
       where: { id: mediaId },
       data: {
         analysisStatus: 'completed',
         analysisCompletedAt: new Date(),
         aiAnalysis: analysis as object,
-        ...(exif && {
-          locationLat: exif.latitude,
-          locationLng: exif.longitude,
-          ...(!media.takenAt && exif.takenAt && { takenAt: exif.takenAt }),
-        }),
       },
     });
 
-    logger.info('Analysis completed', { mediaId, hasExif: !!exif, hasSetlistMatch: !!geoMatch });
+    logger.info('Analysis completed', {
+      mediaId,
+      hasExif: !!exif,
+      hasTakenAt: !!exif?.takenAt,
+      hasGps: !!(exif?.latitude && exif?.longitude),
+      hasSetlistMatch: !!geoMatch,
+    });
   } catch (error) {
     logger.error('Analysis failed', error as Error, { mediaId });
 

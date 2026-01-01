@@ -81,4 +81,15 @@ export const s3Service = {
     await client.send(command);
     logger.info('Deleted S3 object', { key });
   },
+
+  async uploadBuffer(buffer: Buffer, key: string, contentType: string): Promise<void> {
+    const command = new PutObjectCommand({
+      Bucket: bucketName,
+      Key: key,
+      Body: buffer,
+      ContentType: contentType,
+    });
+    await client.send(command);
+    logger.debug('Uploaded buffer to S3', { key, size: buffer.length });
+  },
 };

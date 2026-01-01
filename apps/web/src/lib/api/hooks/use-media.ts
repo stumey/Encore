@@ -51,6 +51,8 @@ export function useMediaItem(id: string | null) {
 /**
  * Get paginated list of media
  * GET /media?page=1&limit=20&concertId=...&mediaType=...
+ *
+ * Automatically polls when items are being analyzed to get updated metadata
  */
 export function useMedia(
   page: number = 1,
@@ -76,6 +78,14 @@ export function useMedia(
         `/media?${params.toString()}`
       );
       return response;
+    },
+    // Poll every 3s while any items are being analyzed (to get updated metadata like takenAt)
+    refetchInterval: (query) => {
+      const data = query.state.data;
+      const hasProcessingItems = data?.data?.some(
+        (item) => item.analysisStatus === 'processing'
+      );
+      return hasProcessingItems ? 3000 : false;
     },
   });
 }

@@ -42,8 +42,10 @@ export function MediaCard({
     }
   };
 
-  const thumbnailUrl = media.thumbnailUrl || media.downloadUrl;
   const isVideo = media.mediaType === 'video';
+  // For videos, only use actual thumbnail (don't fall back to video URL - causes slow loading)
+  // For photos, can use downloadUrl as fallback
+  const thumbnailUrl = media.thumbnailUrl || (isVideo ? null : media.downloadUrl);
   const hasAiAnalysis = !!media.aiAnalysis;
   const takenAt = media.takenAt ? new Date(media.takenAt) : null;
 
