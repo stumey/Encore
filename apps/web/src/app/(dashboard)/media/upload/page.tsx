@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { useUploadUrl, useCreateMedia, useAnalyzeMedia } from '@/lib/api/hooks/use-media';
 import { useUserStats } from '@/lib/api/hooks/use-user';
@@ -38,6 +38,7 @@ export default function MediaUploadPage() {
   const [isUploading, setIsUploading] = useState(false);
   const [analyzeWithAI, setAnalyzeWithAI] = useState(true);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const [isAddingFiles, startTransition] = useTransition();
 
   const { data: userStats } = useUserStats();
   const uploadUrlMutation = useUploadUrl();
@@ -50,12 +51,13 @@ export default function MediaUploadPage() {
 
   /**
    * Handle files selected from dropzone or file picker
+   * Uses startTransition to keep UI responsive during large batch adds
    */
   const handleFilesSelected = useCallback((selectedFiles: File[]) => {
     const filesWithPreview = selectedFiles.map(file => {
       const fileWithPreview = file as FileWithPreview;
 
-      // Create preview URL for images
+      // Create preview URL for images (videos show placeholder icon)
       if (file.type.startsWith('image/')) {
         fileWithPreview.preview = URL.createObjectURL(file);
       }
@@ -66,7 +68,10 @@ export default function MediaUploadPage() {
       return fileWithPreview;
     });
 
-    setFiles(prev => [...prev, ...filesWithPreview]);
+    // Use transition to keep UI responsive during state update
+    startTransition(() => {
+      setFiles(prev => [...prev, ...filesWithPreview]);
+    });
   }, []);
 
   /**
@@ -359,7 +364,7 @@ export default function MediaUploadPage() {
               </div>
             }>
               <CardTitle>
-                Upload Queue ({files.length})
+                Upload Queue ({files.length}){isAddingFiles && ' ...'}
               </CardTitle>
               <div className="flex gap-2 mt-2">
                 {pendingCount > 0 && <Badge variant="default">{pendingCount} pending</Badge>}
