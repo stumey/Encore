@@ -1,10 +1,8 @@
 'use client';
 
 import { useConcert, useDeleteConcert } from '@/lib/api/hooks/use-concerts';
-import { useSetlist } from '@/lib/api/hooks/use-setlists';
 import { useMedia } from '@/lib/api/hooks/use-media';
 import { ArtistChips } from '@/components/concerts/artist-chips';
-import { SetlistDisplay } from '@/components/concerts/setlist-display';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -19,7 +17,6 @@ import { Modal, ModalFooter } from '@/components/ui/modal';
  * Displays comprehensive information about a single concert including:
  * - Concert header with date, venue, tour
  * - Artist lineup with headliner indication
- * - Setlist (if available)
  * - Media gallery
  * - Edit and delete actions
  */
@@ -30,7 +27,6 @@ export default function ConcertDetailPage() {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   const { data: concert, isLoading: concertLoading, error: concertError } = useConcert(id);
-  const { data: setlist } = useSetlist(id);
   const { data: mediaData, isLoading: mediaLoading } = useMedia(1, 50, { concertId: id });
 
   const deleteConcert = useDeleteConcert();
@@ -239,9 +235,6 @@ export default function ConcertDetailPage() {
             </CardContent>
           </Card>
         )}
-
-        {/* Setlist Section */}
-        <SetlistDisplay setlist={setlist || null} />
 
         {/* Media Gallery Section */}
         <Card>
