@@ -8,8 +8,15 @@ import { asyncHandler, AppError } from '../middleware/errorHandler';
 const router = Router();
 
 const updateProfileSchema = z.object({
-  username: z.string().min(3).max(30).optional(),
-  displayName: z.string().max(100).optional(),
+  username: z.string().max(30).optional().transform(val => {
+    if (!val || val.trim() === '') return null; // Empty = clear
+    if (val.trim().length < 3) throw new Error('Username must be at least 3 characters');
+    return val.trim();
+  }),
+  displayName: z.string().max(100).optional().transform(val => {
+    if (!val || val.trim() === '') return null; // Empty = clear
+    return val.trim();
+  }),
   avatarUrl: z.string().url().optional(),
   isPublic: z.boolean().optional(),
 });
