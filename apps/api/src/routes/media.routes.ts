@@ -223,7 +223,8 @@ router.get(
     const limit = parseInt(req.query.limit as string) || 50;
     const concertId = req.query.concertId as string | undefined;
     const unassigned = req.query.unassigned === 'true';
-    const mediaType = req.query.type as string | undefined;
+    // Accept both 'type' and 'mediaType' query params for compatibility
+    const mediaType = (req.query.mediaType || req.query.type) as string | undefined;
 
     const where = {
       userId: req.user!.userId,

@@ -65,8 +65,18 @@ export const ffmpegService = {
       });
 
       proc.on('error', () => resolve(null));
-      proc.stdin?.write(videoBuffer);
-      proc.stdin?.end();
+
+      // Handle stdin errors (EPIPE) to prevent uncaught exceptions
+      proc.stdin?.on('error', (err) => {
+        logger.debug('ffmpeg stdin error (expected if ffmpeg exits early)', { error: err.message });
+      });
+
+      proc.stdin?.write(videoBuffer, (err) => {
+        if (err) {
+          logger.debug('ffmpeg stdin write error', { error: err.message });
+        }
+        proc.stdin?.end();
+      });
     });
   },
 
@@ -121,8 +131,17 @@ export const ffmpegService = {
         resolve(null);
       });
 
-      proc.stdin?.write(videoBuffer);
-      proc.stdin?.end();
+      // Handle stdin errors (EPIPE) to prevent uncaught exceptions
+      proc.stdin?.on('error', (err) => {
+        logger.debug('ffmpeg stdin error (expected if ffmpeg exits early)', { error: err.message });
+      });
+
+      proc.stdin?.write(videoBuffer, (err) => {
+        if (err) {
+          logger.debug('ffmpeg stdin write error', { error: err.message });
+        }
+        proc.stdin?.end();
+      });
     });
   },
 };
