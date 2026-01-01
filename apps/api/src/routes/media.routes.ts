@@ -221,12 +221,14 @@ router.get(
   asyncHandler(async (req, res) => {
     const page = parseInt(req.query.page as string) || 1;
     const limit = parseInt(req.query.limit as string) || 50;
+    const concertId = req.query.concertId as string | undefined;
     const unassigned = req.query.unassigned === 'true';
     const mediaType = req.query.type as string | undefined;
 
     const where = {
       userId: req.user!.userId,
-      ...(unassigned ? { concertId: null } : {}),
+      // concertId filter: specific concert > unassigned > all
+      ...(concertId ? { concertId } : unassigned ? { concertId: null } : {}),
       ...(mediaType && ['photo', 'video'].includes(mediaType)
         ? { mediaType: mediaType as 'photo' | 'video' }
         : {}),
