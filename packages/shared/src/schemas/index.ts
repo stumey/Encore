@@ -8,9 +8,13 @@ export const updateProfileSchema = z.object({
   isPublic: z.boolean().optional(),
 });
 
-// Concert schemas
-export const createConcertSchema = z.object({
+// Concert schemas - base object for reuse
+const concertBaseSchema = z.object({
   concertDate: z.string().transform((s) => new Date(s)),
+  concertEndDate: z
+    .string()
+    .transform((s) => new Date(s))
+    .optional(),
   venueId: z.string().uuid().optional(),
   tourName: z.string().optional(),
   notes: z.string().optional(),
@@ -25,7 +29,23 @@ export const createConcertSchema = z.object({
     .optional(),
 });
 
-export const updateConcertSchema = createConcertSchema.partial();
+// Create schema with date validation
+export const createConcertSchema = concertBaseSchema.refine(
+  (data) => {
+    if (!data.concertEndDate) return true;
+    return data.concertEndDate >= data.concertDate;
+  },
+  { message: 'End date must be on or after start date', path: ['concertEndDate'] }
+);
+
+// Update schema - partial fields, validate dates if both provided
+export const updateConcertSchema = concertBaseSchema.partial().refine(
+  (data) => {
+    if (!data.concertDate || !data.concertEndDate) return true;
+    return data.concertEndDate >= data.concertDate;
+  },
+  { message: 'End date must be on or after start date', path: ['concertEndDate'] }
+);
 
 // Artist schemas
 export const createArtistSchema = z.object({

@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useUploadUrl, useCreateMedia, useAnalyzeMedia } from '@/lib/api/hooks/use-media';
 import { useUserStats } from '@/lib/api/hooks/use-user';
 import { UploadDropzone } from '@/components/media/upload-dropzone';
+import { UploadReview } from '@/components/media/upload-review';
 import { UpgradeModal } from '@/components/modals/upgrade-modal';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
@@ -39,6 +40,8 @@ export default function MediaUploadPage() {
   const [analyzeWithAI, setAnalyzeWithAI] = useState(true);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [isAddingFiles, startTransition] = useTransition();
+  const [showReview, setShowReview] = useState(false);
+  const [uploadedMediaIds, setUploadedMediaIds] = useState<string[]>([]);
 
   const { data: userStats } = useUserStats();
   const uploadUrlMutation = useUploadUrl();
@@ -179,23 +182,35 @@ export default function MediaUploadPage() {
 
     setIsUploading(true);
 
+    const newMediaIds: string[] = [];
+
     try {
       // Upload files sequentially (could be parallel with Promise.all)
       for (let i = 0; i < files.length; i++) {
         if (!files[i].uploadComplete && !files[i].uploadError) {
           await uploadFile(files[i], i);
+          // Collect media ID after successful upload
+          if (files[i].mediaId) {
+            newMediaIds.push(files[i].mediaId!);
+          }
         }
       }
 
-      // Check if all uploads succeeded
-      const allComplete = files.every(f => f.uploadComplete);
-      if (allComplete) {
-        setTimeout(() => {
-          router.push('/media');
-        }, 1000);
+      // If we have uploaded media with AI analysis, show review flow
+      if (newMediaIds.length > 0 && analyzeWithAI) {
+        setUploadedMediaIds(prev => [...prev, ...newMediaIds]);
+        setShowReview(true);
+      } else if (newMediaIds.length > 0) {
+        // No AI analysis, go straight to gallery
+        router.push('/media');
       }
     } catch (error) {
       console.error('Upload error:', error);
+      // Still show review for successful uploads
+      if (newMediaIds.length > 0 && analyzeWithAI) {
+        setUploadedMediaIds(prev => [...prev, ...newMediaIds]);
+        setShowReview(true);
+      }
     } finally {
       setIsUploading(false);
     }
@@ -491,8 +506,16 @@ export default function MediaUploadPage() {
           </div>
         )}
 
-        {/* Success Message */}
-        {completedCount > 0 && pendingCount === 0 && errorCount === 0 && (
+        {/* Post-upload Review Flow */}
+        {showReview && uploadedMediaIds.length > 0 && (
+          <UploadReview
+            mediaIds={uploadedMediaIds}
+            onComplete={() => router.push('/media')}
+          />
+        )}
+
+        {/* Success Message (only if not showing review) */}
+        {!showReview && completedCount > 0 && pendingCount === 0 && errorCount === 0 && (
           <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-6 text-center">
             <svg className="h-12 w-12 text-green-500 mx-auto mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />

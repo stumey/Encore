@@ -37,6 +37,7 @@ export interface Concert {
   userId: string;
   venueId: string | null;
   concertDate: Date | string;
+  concertEndDate: Date | string | null;
   tourName: string | null;
   confidenceScore: number | null;
   notes: string | null;

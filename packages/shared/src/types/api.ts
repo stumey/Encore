@@ -62,13 +62,26 @@ export interface VenueWithConcerts extends Venue {
   concerts: ConcertWithDetails[];
 }
 
+export interface MatchSuggestion {
+  concertId: string;
+  confidence: number;
+  matchedVia: string;
+  concert: {
+    date: Date | string;
+    venue: string | null;
+    artists: string[];
+  } | null;
+}
+
 export interface MediaWithUrls extends Media {
   downloadUrl: string;
   thumbnailUrl: string | null;
   retryAfter?: number | null;
   concert?: (Pick<Concert, 'id' | 'concertDate'> & {
+    venue?: Pick<Venue, 'name' | 'city'> | null;
     artists: (ConcertArtist & { artist: Pick<Artist, 'id' | 'name'> })[];
   }) | null;
+  matchSuggestions?: MatchSuggestion[];
 }
 
 // Setlist.fm lineup suggestion types

@@ -41,6 +41,8 @@ export default function NewConcertPage() {
 
   // Form state
   const [concertDate, setConcertDate] = useState('');
+  const [isMultiDay, setIsMultiDay] = useState(false);
+  const [concertEndDate, setConcertEndDate] = useState('');
   const [selectedArtists, setSelectedArtists] = useState<SelectedArtist[]>([]);
   const [selectedVenue, setSelectedVenue] = useState<Venue | null>(null);
   const [tourName, setTourName] = useState('');
@@ -156,6 +158,7 @@ export default function NewConcertPage() {
     try {
       const concert = await createConcert.mutateAsync({
         concertDate: new Date(concertDate),
+        concertEndDate: isMultiDay && concertEndDate ? new Date(concertEndDate) : undefined,
         venueId: selectedVenue?.id,
         tourName: tourName || undefined,
         notes: notes || undefined,
@@ -211,7 +214,10 @@ export default function NewConcertPage() {
     }
   };
 
-  const isFormValid = concertDate && selectedArtists.length > 0;
+  const isFormValid =
+    concertDate &&
+    selectedArtists.length > 0 &&
+    (!isMultiDay || (concertEndDate && concertEndDate >= concertDate));
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-slate-900">
@@ -246,14 +252,52 @@ export default function NewConcertPage() {
               <CardTitle>Concert Date</CardTitle>
             </CardHeader>
             <CardContent>
-              <TextInput
-                type="date"
-                value={concertDate}
-                onChange={(e) => setConcertDate(e.target.value)}
-                required
-                fullWidth
-                label="Date"
-              />
+              <div className="space-y-4">
+                <TextInput
+                  type="date"
+                  value={concertDate}
+                  onChange={(e) => setConcertDate(e.target.value)}
+                  required
+                  fullWidth
+                  label={isMultiDay ? 'Start Date' : 'Date'}
+                />
+
+                {/* Multi-day toggle */}
+                <label className="flex items-center gap-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={isMultiDay}
+                    onChange={(e) => {
+                      setIsMultiDay(e.target.checked);
+                      if (!e.target.checked) {
+                        setConcertEndDate('');
+                      }
+                    }}
+                    className="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                  />
+                  <span className="text-sm text-gray-700 dark:text-gray-300">
+                    Multi-day event (festival, residency, etc.)
+                  </span>
+                </label>
+
+                {/* End date picker - shown when multi-day is checked */}
+                {isMultiDay && (
+                  <TextInput
+                    type="date"
+                    value={concertEndDate}
+                    onChange={(e) => setConcertEndDate(e.target.value)}
+                    min={concertDate}
+                    required={isMultiDay}
+                    fullWidth
+                    label="End Date"
+                    error={
+                      concertEndDate && concertDate && concertEndDate < concertDate
+                        ? 'End date must be on or after start date'
+                        : undefined
+                    }
+                  />
+                )}
+              </div>
             </CardContent>
           </Card>
 

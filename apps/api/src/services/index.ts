@@ -14,3 +14,4 @@ export { acrcloudService, type ACRCloudMatch } from './acrcloud.service';
 export { auddService, type AudDMatch } from './audd.service';
 export { ffmpegService } from './ffmpeg.service';
 export { mediaAnalysisService, getRetryAfter } from './media-analysis.service';
+export { concertMatchingService, type MatchResult, type ConcertMatch } from './concert-matching.service';

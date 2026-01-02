@@ -4,6 +4,7 @@ import { claudeService } from './claude.service';
 import { exifService } from './exif.service';
 import { setlistService } from './setlist.service';
 import { ffmpegService } from './ffmpeg.service';
+import { concertMatchingService } from './concert-matching.service';
 import { Logger } from '../utils/logger';
 
 const logger = new Logger('MediaAnalysisService');
@@ -210,6 +211,36 @@ export const mediaAnalysisService = {
         hasGps: !!(exif?.latitude && exif?.longitude),
         hasSetlistMatch: !!geoMatch,
       });
+
+      // Attempt to match media to existing concerts
+      const finalTakenAt = takenAt ? new Date(takenAt) : null;
+      const matchResult = await concertMatchingService.findMatches({
+        userId: media.userId,
+        takenAt: finalTakenAt,
+        locationLat: lat ?? null,
+        locationLng: lng ?? null,
+        visualAnalysis,
+        setlistMatch: geoMatch,
+      });
+
+      if (matchResult.autoMatched) {
+        await concertMatchingService.applyMatch(mediaId, matchResult.autoMatched);
+      } else if (matchResult.suggestions.length > 0) {
+        // Store suggestions in aiAnalysis for UI to display
+        await prisma.media.update({
+          where: { id: mediaId },
+          data: {
+            aiAnalysis: {
+              ...analysis,
+              matchSuggestions: matchResult.suggestions,
+            } as object,
+          },
+        });
+        logger.info('Match suggestions stored', {
+          mediaId,
+          count: matchResult.suggestions.length,
+        });
+      }
     } catch (error) {
       logger.error('Analysis failed', error as Error, { mediaId });
 

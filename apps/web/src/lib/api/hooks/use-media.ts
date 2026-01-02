@@ -152,6 +152,30 @@ export function useAnalyzeMedia() {
 }
 
 /**
+ * Assign media to a concert
+ * PATCH /media/:id
+ */
+export function useAssignMediaToConcert() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ mediaId, concertId }: { mediaId: string; concertId: string | null }) => {
+      const response = await apiClient.patch<ApiResponse<MediaWithUrls>>(
+        `/media/${mediaId}`,
+        { concertId }
+      );
+      return response.data;
+    },
+    onSuccess: (data) => {
+      // Update cached detail
+      queryClient.setQueryData(MEDIA_KEYS.detail(data.id), data);
+      // Invalidate lists
+      queryClient.invalidateQueries({ queryKey: MEDIA_KEYS.lists() });
+    },
+  });
+}
+
+/**
  * Delete media
  * DELETE /media/:id
  */

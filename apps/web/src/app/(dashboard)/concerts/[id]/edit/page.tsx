@@ -47,6 +47,8 @@ export default function EditConcertPage() {
 
   // Form state
   const [concertDate, setConcertDate] = useState('');
+  const [isMultiDay, setIsMultiDay] = useState(false);
+  const [concertEndDate, setConcertEndDate] = useState('');
   const [selectedArtists, setSelectedArtists] = useState<SelectedArtist[]>([]);
   const [selectedVenue, setSelectedVenue] = useState<Venue | null>(null);
   const [tourName, setTourName] = useState('');
@@ -81,6 +83,13 @@ export default function EditConcertPage() {
       // Set date (format as YYYY-MM-DD for input[type="date"])
       const date = new Date(concert.concertDate);
       setConcertDate(date.toISOString().split('T')[0]);
+
+      // Set end date if multi-day event
+      if (concert.concertEndDate) {
+        setIsMultiDay(true);
+        const endDate = new Date(concert.concertEndDate);
+        setConcertEndDate(endDate.toISOString().split('T')[0]);
+      }
 
       // Set artists
       if (concert.artists && concert.artists.length > 0) {
@@ -196,6 +205,7 @@ export default function EditConcertPage() {
         id: concertId,
         data: {
           concertDate: new Date(concertDate),
+          concertEndDate: isMultiDay && concertEndDate ? new Date(concertEndDate) : undefined,
           venueId: selectedVenue?.id,
           tourName: tourName || undefined,
           notes: notes || undefined,

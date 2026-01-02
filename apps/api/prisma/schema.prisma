@@ -62,11 +62,12 @@ model Venue {
 
 // Concerts (the core entity)
 model Concert {
-  id              String   @id @default(uuid())
-  userId          String   @map("user_id")
-  venueId         String?  @map("venue_id")
-  concertDate     DateTime @map("concert_date")
-  tourName        String?  @map("tour_name")
+  id              String    @id @default(uuid())
+  userId          String    @map("user_id")
+  venueId         String?   @map("venue_id")
+  concertDate     DateTime  @map("concert_date")
+  concertEndDate  DateTime? @map("concert_end_date")
+  tourName        String?   @map("tour_name")
   confidenceScore Decimal? @map("confidence_score") // AI confidence 0-1
   notes           String?
   isVerified      Boolean  @default(false) @map("is_verified")

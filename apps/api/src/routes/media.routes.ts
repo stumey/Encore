@@ -144,7 +144,16 @@ router.get(
   asyncHandler(async (req, res) => {
     const media = await prisma.media.findFirst({
       where: { id: req.params.id, userId: req.user!.userId },
-      include: { concert: { select: { id: true, concertDate: true } } },
+      include: {
+        concert: {
+          select: {
+            id: true,
+            concertDate: true,
+            venue: { select: { name: true, city: true } },
+            artists: { include: { artist: { select: { name: true } } } },
+          },
+        },
+      },
     });
 
     if (!media) {
@@ -160,12 +169,55 @@ router.get(
       ? getRetryAfter(media.mediaType, media.analysisStartedAt)
       : null;
 
+    // Extract match suggestions and enrich with concert details
+    const aiAnalysis = media.aiAnalysis as Record<string, unknown> | null;
+    const rawSuggestions = (aiAnalysis?.matchSuggestions || []) as Array<{
+      concertId: string;
+      metadata: { confidence: number; matchedVia: string };
+    }>;
+
+    let matchSuggestions: Array<{
+      concertId: string;
+      confidence: number;
+      matchedVia: string;
+      concert: { date: Date; venue: string | null; artists: string[] } | null;
+    }> = [];
+
+    if (rawSuggestions.length > 0 && !media.concertId) {
+      // Fetch concert details for suggestions
+      const concertIds = rawSuggestions.map(s => s.concertId);
+      const concerts = await prisma.concert.findMany({
+        where: { id: { in: concertIds } },
+        include: {
+          venue: { select: { name: true } },
+          artists: { include: { artist: { select: { name: true } } } },
+        },
+      });
+
+      const concertMap = new Map(concerts.map(c => [c.id, c]));
+
+      matchSuggestions = rawSuggestions.map(s => {
+        const concert = concertMap.get(s.concertId);
+        return {
+          concertId: s.concertId,
+          confidence: s.metadata.confidence,
+          matchedVia: s.metadata.matchedVia,
+          concert: concert ? {
+            date: concert.concertDate,
+            venue: concert.venue?.name || null,
+            artists: concert.artists.map(ca => ca.artist.name),
+          } : null,
+        };
+      });
+    }
+
     res.json({
       data: {
         ...media,
         downloadUrl,
         thumbnailUrl,
         retryAfter,
+        matchSuggestions,
       },
     });
   })
