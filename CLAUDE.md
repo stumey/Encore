@@ -54,10 +54,10 @@
 
 ### Prerequisites
 - **Node.js 20+**
-- **Docker Desktop** (running) - required for PostgreSQL and local services
+- **Docker Desktop** (running) - required for PostgreSQL and LocalStack
 - **PostgreSQL** (via Docker)
 - AWS Account (Cognito for auth)
-- AWS S3 bucket (media storage)
+- AWS S3 bucket (media storage) - or use LocalStack for local dev
 - Claude API key (AI analysis - optional for local)
 
 ### Startup Sequence
@@ -88,6 +88,32 @@ make api      # API server → http://localhost:3001 (starts first!)
 make web      # Web app → http://localhost:3000
 make mobile   # Mobile app → Expo Dev Tools
 ```
+
+### LocalStack S3 (Local Development)
+
+To develop without a real AWS S3 bucket, use LocalStack:
+
+```bash
+# 1. Start infrastructure (includes LocalStack)
+make dev-up
+
+# 2. Start API with LocalStack S3
+make api-local    # Uses LocalStack S3 at localhost:4566
+
+# 3. Start web app (no changes needed)
+make web
+
+# Login with your real AWS Cognito account
+# Media uploads go to LocalStack S3 instead of AWS
+```
+
+**Benefits:**
+- No AWS S3 costs during development
+- No S3 credentials needed
+- Faster uploads (local network)
+- Easy reset: `make dev-reset` clears all data
+
+**Note:** Authentication still uses real AWS Cognito.
 
 ### Other Commands
 
@@ -1138,6 +1164,40 @@ npm run build
 - Tailwind CSS for styling (no CSS modules)
 - ESLint + Prettier configured
 - Avoid over-engineering (keep it simple)
+
+### TypeScript Guidelines
+
+- **Prefer `@types/*` packages over custom `.d.ts` files** - Before creating a custom type declaration in `src/types/`, check if official types exist: `npm view @types/<package-name>`. Install them as dev dependencies.
+- Custom `.d.ts` files are a last resort for packages with no published types
+- Keep `skipLibCheck: false` (the default) to catch type issues in dependencies
+
+### Backend Architecture (Onion Architecture)
+
+Follow onion architecture principles - dependencies point inward, outer layers depend on inner layers:
+
+```
+┌─────────────────────────────────────────────────────────┐
+│  Infrastructure (outermost)                             │
+│  - Routes (HTTP handlers) - thin, validation + response │
+│  - Database (Prisma client)                             │
+│  - External APIs (S3, Claude, Setlist.fm)               │
+├─────────────────────────────────────────────────────────┤
+│  Application/Services                                   │
+│  - Business logic orchestration                         │
+│  - Use cases (e.g., mediaAnalysisService)               │
+├─────────────────────────────────────────────────────────┤
+│  Domain (innermost)                                     │
+│  - Entities, types, validation schemas                  │
+│  - Pure functions, no external dependencies             │
+└─────────────────────────────────────────────────────────┘
+```
+
+**Rules:**
+- **Routes** → Validate input, call service, return response. No business logic.
+- **Services** → Orchestrate use cases, call other services/repositories. Testable in isolation.
+- **Domain** → Pure types and logic. No imports from infrastructure.
+
+**Example:** `media.routes.ts` calls `mediaAnalysisService.runAnalysis()` - the route doesn't know about S3, Claude, or FFmpeg.
 
 ### Testing Reminders
 

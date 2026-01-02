@@ -13,3 +13,4 @@ export { exifService, type ExifMetadata } from './exif.service';
 export { acrcloudService, type ACRCloudMatch } from './acrcloud.service';
 export { auddService, type AudDMatch } from './audd.service';
 export { ffmpegService } from './ffmpeg.service';
+export { mediaAnalysisService, getRetryAfter } from './media-analysis.service';
