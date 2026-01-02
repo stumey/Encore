@@ -35,7 +35,7 @@ jobs:
           if [[ "${GITHUB_REF##*/}" == main ]]; then
             echo "WORKFLOW=build-main.yml" >> $GITHUB_OUTPUT
           else
-            echo "WORKFLOW=deploy-release.yml" >> $GITHUB_OUTPUT
+            echo "WORKFLOW=create-production-builds.yml" >> $GITHUB_OUTPUT
           fi
 
       - name: Trigger EAS Workflow
