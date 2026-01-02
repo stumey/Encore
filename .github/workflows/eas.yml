@@ -1,0 +1,45 @@
+# .github/workflows/eas.yml
+name: Trigger EAS Workflows
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - 'v*'  # runs on version tags
+
+jobs:
+  trigger_eas:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - name: Install EAS CLI
+        run: npm install -g eas-cli
+
+      - name: Configure Expo Token
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+        run: |
+          echo "👤 authenticated"
+      
+      - name: Determine workflow
+        id: which
+        run: |
+          if [[ "${GITHUB_REF##*/}" == main ]]; then
+            echo "WORKFLOW=build-main.yml" >> $GITHUB_OUTPUT
+          else
+            echo "WORKFLOW=deploy-release.yml" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Trigger EAS Workflow
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+        run: |
+          npx eas-cli workflow:run .eas/workflows/${{ steps.which.outputs.WORKFLOW }} --non-interactive
