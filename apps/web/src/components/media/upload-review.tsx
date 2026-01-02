@@ -2,9 +2,11 @@
 
 import { useEffect, useState } from 'react';
 import { useMediaItem, useAssignMediaToConcert } from '@/lib/api/hooks/use-media';
+import { useConcerts } from '@/lib/api/hooks/use-concerts';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Spinner } from '@/components/ui/spinner';
+import type { ConcertWithDetails } from '@encore/shared';
 
 interface UploadReviewProps {
   mediaIds: string[];
@@ -72,31 +74,34 @@ interface UploadReviewItemProps {
 
 function UploadReviewItem({ mediaId, onReviewed, isReviewed }: UploadReviewItemProps) {
   const { data: media, isLoading } = useMediaItem(mediaId);
+  const { data: concertsData } = useConcerts(1, 50); // Get user's concerts for picker
   const assignMutation = useAssignMediaToConcert();
   const [dismissed, setDismissed] = useState(false);
+  const [showPicker, setShowPicker] = useState(false);
 
   const isAnalyzing = media?.analysisStatus === 'processing';
   const isComplete = media?.analysisStatus === 'completed';
   const hasConcert = !!media?.concertId;
   const hasSuggestions = (media?.matchSuggestions?.length ?? 0) > 0;
   const topSuggestion = media?.matchSuggestions?.[0];
+  const concerts = concertsData?.data ?? [];
 
-  // Auto-mark as reviewed when auto-matched or no suggestions
+  // Auto-mark as reviewed when auto-matched (but NOT when no suggestions - user should have option to pick)
   useEffect(() => {
-    if (!isReviewed && isComplete) {
-      if (hasConcert || (!hasSuggestions && !dismissed)) {
-        onReviewed();
-      }
+    if (!isReviewed && isComplete && hasConcert) {
+      onReviewed();
     }
-  }, [isComplete, hasConcert, hasSuggestions, isReviewed, dismissed, onReviewed]);
+  }, [isComplete, hasConcert, isReviewed, onReviewed]);
 
   const handleAccept = async (concertId: string) => {
     await assignMutation.mutateAsync({ mediaId, concertId });
+    setShowPicker(false);
     onReviewed();
   };
 
   const handleSkip = () => {
     setDismissed(true);
+    setShowPicker(false);
     onReviewed();
   };
 
@@ -155,28 +160,35 @@ function UploadReviewItem({ mediaId, onReviewed, isReviewed }: UploadReviewItemP
           </div>
         )}
 
-        {isComplete && !hasConcert && hasSuggestions && !dismissed && topSuggestion?.concert && (
+        {isComplete && !hasConcert && hasSuggestions && !dismissed && !showPicker && topSuggestion?.concert && (
           <p className="text-xs text-purple-600 dark:text-purple-400 mt-1">
             Match found: {topSuggestion.concert.artists.join(', ')} at {topSuggestion.concert.venue}
           </p>
         )}
 
-        {isComplete && !hasConcert && !hasSuggestions && (
+        {isComplete && !hasConcert && !hasSuggestions && !dismissed && !showPicker && (
           <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
             No concert match found
           </p>
         )}
 
+        {showPicker && (
+          <p className="text-xs text-purple-600 dark:text-purple-400 mt-1">
+            Select a concert to link this media to
+          </p>
+        )}
+
         {dismissed && (
           <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-            Skipped - assign later from gallery
+            Skipped
           </p>
         )}
       </div>
 
       {/* Actions */}
       <div className="flex-shrink-0 flex items-center gap-2">
-        {isComplete && !hasConcert && hasSuggestions && !dismissed && topSuggestion && (
+        {/* Suggestion found - show Confirm / Choose Different */}
+        {isComplete && !hasConcert && hasSuggestions && !dismissed && !showPicker && topSuggestion && (
           <>
             <Button
               variant="primary"
@@ -190,6 +202,57 @@ function UploadReviewItem({ mediaId, onReviewed, isReviewed }: UploadReviewItemP
             <Button
               variant="ghost"
               size="sm"
+              onClick={() => setShowPicker(true)}
+              disabled={assignMutation.isPending}
+            >
+              Different
+            </Button>
+          </>
+        )}
+
+        {/* No match found - show Select Concert / Skip */}
+        {isComplete && !hasConcert && !hasSuggestions && !dismissed && !showPicker && (
+          <>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowPicker(true)}
+            >
+              Select Concert
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleSkip}
+            >
+              Skip
+            </Button>
+          </>
+        )}
+
+        {/* Concert picker dropdown */}
+        {showPicker && (
+          <>
+            <select
+              className="text-sm border border-gray-300 dark:border-slate-600 rounded-lg px-3 py-1.5 bg-white dark:bg-slate-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500 max-w-[200px]"
+              onChange={(e) => {
+                if (e.target.value) {
+                  handleAccept(e.target.value);
+                }
+              }}
+              defaultValue=""
+              disabled={assignMutation.isPending}
+            >
+              <option value="" disabled>Choose concert...</option>
+              {concerts.map((concert) => (
+                <option key={concert.id} value={concert.id}>
+                  {formatConcertOption(concert)}
+                </option>
+              ))}
+            </select>
+            <Button
+              variant="ghost"
+              size="sm"
               onClick={handleSkip}
               disabled={assignMutation.isPending}
             >
@@ -198,13 +261,14 @@ function UploadReviewItem({ mediaId, onReviewed, isReviewed }: UploadReviewItemP
           </>
         )}
 
+        {/* Completed states */}
         {isComplete && hasConcert && (
           <svg className="h-5 w-5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
           </svg>
         )}
 
-        {isComplete && !hasConcert && (!hasSuggestions || dismissed) && (
+        {dismissed && (
           <svg className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
           </svg>
@@ -220,4 +284,11 @@ function formatDate(date: Date | string): string {
     day: 'numeric',
     year: 'numeric',
   });
+}
+
+function formatConcertOption(concert: ConcertWithDetails): string {
+  const artist = concert.artists?.[0]?.artist?.name || 'Unknown Artist';
+  const date = formatDate(concert.concertDate);
+  const venue = concert.venue?.name;
+  return venue ? `${artist} - ${date} @ ${venue}` : `${artist} - ${date}`;
 }
