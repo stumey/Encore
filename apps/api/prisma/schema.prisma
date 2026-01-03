@@ -48,6 +48,8 @@ model Venue {
   id          String   @id @default(uuid())
   name        String
   setlistFmId String?  @unique @map("setlist_fm_id")
+  latitude    Decimal? @map("latitude")
+  longitude   Decimal? @map("longitude")
   city        String?
   state       String?
   country     String?

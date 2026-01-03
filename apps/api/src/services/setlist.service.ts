@@ -89,73 +89,7 @@ function addDays(date: Date, days: number): Date {
   return result;
 }
 
-export interface GeoMatch {
-  venueId: string;
-  venueName: string;
-  city: string;
-  artists: { mbid: string; name: string }[];
-}
-
-/** Haversine distance in km */
-function haversine(lat1: number, lng1: number, lat2: number, lng2: number): number {
-  const R = 6371;
-  const dLat = (lat2 - lat1) * Math.PI / 180;
-  const dLng = (lng2 - lng1) * Math.PI / 180;
-  const a = Math.sin(dLat / 2) ** 2 +
-    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-    Math.sin(dLng / 2) ** 2;
-  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-}
-
 export const setlistService = {
-  /**
-   * Find the concert venue closest to GPS coordinates on a given date
-   * Returns null if no venue within 2km had a concert that day
-   */
-  async findByLocation(lat: number, lng: number, date: Date): Promise<GeoMatch | null> {
-    const dateStr = toSetlistFormat(date);
-
-    try {
-      const { data } = await client.get<SetlistSearchResponse>('/search/setlists', {
-        params: { date: dateStr, p: 1 },
-      });
-
-      if (!data.setlist?.length) return null;
-
-      let bestMatch: { venue: SetlistFmVenue; distance: number; artists: Map<string, string> } | null = null;
-
-      for (const setlist of data.setlist) {
-        const venue = setlist.venue as unknown as SetlistFmVenue;
-        if (!venue?.city?.coords) continue;
-
-        const distance = haversine(lat, lng, venue.city.coords.lat, venue.city.coords.long);
-
-        if (distance > 2) continue; // Must be within 2km
-
-        if (!bestMatch || distance < bestMatch.distance) {
-          bestMatch = { venue, distance, artists: new Map() };
-        }
-
-        if (bestMatch.venue.id === venue.id && setlist.artist?.mbid) {
-          bestMatch.artists.set(setlist.artist.mbid, setlist.artist.name);
-        }
-      }
-
-      if (!bestMatch) return null;
-
-      return {
-        venueId: bestMatch.venue.id,
-        venueName: bestMatch.venue.name,
-        city: bestMatch.venue.city?.name || '',
-        artists: Array.from(bestMatch.artists.entries()).map(([mbid, name]) => ({ mbid, name })),
-      };
-    } catch (error) {
-      if (axios.isAxiosError(error) && error.response?.status === 404) return null;
-      logger.error('Geo lookup failed', { lat, lng, date: dateStr });
-      return null;
-    }
-  },
-
   async searchArtist(query: string): Promise<SetlistArtist[]> {
     try {
       const { data } = await client.get('/search/artists', {

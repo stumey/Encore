@@ -49,6 +49,8 @@ router.get(
         id: null, // Not saved to DB yet
         setlistFmId: v.id,
         name: v.name,
+        latitude: v.city?.coords?.lat ?? null,
+        longitude: v.city?.coords?.long ?? null,
         city: v.city?.name || null,
         state: v.city?.state || null,
         country: v.city?.country?.name || null,
@@ -72,6 +74,8 @@ router.post(
       .object({
         setlistFmId: z.string(),
         name: z.string(),
+        latitude: z.number().nullable(),
+        longitude: z.number().nullable(),
         city: z.string().nullable(),
         state: z.string().nullable(),
         country: z.string().nullable(),
@@ -88,14 +92,30 @@ router.post(
         data: {
           setlistFmId: data.setlistFmId,
           name: data.name,
+          latitude: data.latitude,
+          longitude: data.longitude,
           city: data.city,
           state: data.state,
           country: data.country,
         },
       });
-      logger.info('Created venue from Setlist.fm', { venueId: venue.id, name: venue.name });
+      logger.info('Created venue from Setlist.fm', {
+        venueId: venue.id,
+        name: venue.name,
+        latitude: data.latitude,
+        longitude: data.longitude,
+      });
     } else {
-      logger.debug('Found existing venue', { venueId: venue.id, name: venue.name });
+      // Update coordinates if they were missing and are now provided
+      if (!venue.latitude && data.latitude && data.longitude) {
+        venue = await prisma.venue.update({
+          where: { id: venue.id },
+          data: { latitude: data.latitude, longitude: data.longitude },
+        });
+        logger.info('Updated venue with coordinates', { venueId: venue.id });
+      } else {
+        logger.debug('Found existing venue', { venueId: venue.id, name: venue.name });
+      }
     }
 
     res.json({ data: venue });

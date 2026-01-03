@@ -18,9 +18,58 @@ const DATE_TAG_NAMES = [
   'encoded_date',                      // MKV
 ];
 
+// Tag names that may contain GPS location
+const LOCATION_TAG_NAMES = [
+  'com.apple.quicktime.location.ISO6709', // iOS primary
+  'location',                              // Android/generic
+  'location-eng',                          // Some formats
+];
+
 export interface VideoMetadata {
   creationTime: Date | null;
   duration: number | null;
+  latitude: number | null;
+  longitude: number | null;
+}
+
+/**
+ * Parse ISO 6709 location string (e.g., "+35.6895+139.6917/" or "+35.6895+139.6917+35.000/")
+ * Format: ±lat±lng[±altitude]/
+ */
+function parseISO6709(locationStr: string): { latitude: number; longitude: number } | null {
+  if (!locationStr || locationStr.length < 3) return null;
+
+  const str = locationStr.trim().replace(/\/$/, ''); // Remove trailing slash
+
+  // Find sign positions - the string starts with a sign for latitude,
+  // then has another sign to start longitude (and optionally altitude)
+  const signPositions: number[] = [];
+  for (let i = 0; i < str.length; i++) {
+    if (str[i] === '+' || str[i] === '-') {
+      signPositions.push(i);
+    }
+  }
+
+  // Need at least 2 signs (lat and lng)
+  if (signPositions.length < 2) return null;
+
+  // First segment is latitude (from position 0 to second sign)
+  const latStr = str.substring(signPositions[0], signPositions[1]);
+  // Second segment is longitude (from second sign to third sign or end)
+  const lngEnd = signPositions.length > 2 ? signPositions[2] : str.length;
+  const lngStr = str.substring(signPositions[1], lngEnd);
+
+  const latitude = parseFloat(latStr);
+  const longitude = parseFloat(lngStr);
+
+  if (isNaN(latitude) || isNaN(longitude)) return null;
+
+  // Validate ranges
+  if (latitude < -90 || latitude > 90 || longitude < -180 || longitude > 180) {
+    return null;
+  }
+
+  return { latitude, longitude };
 }
 
 export const ffmpegService = {
@@ -76,9 +125,25 @@ export const ffmpegService = {
             }
           }
 
-          logger.debug('Video metadata parsed', { creationTime, duration, availableTags: Object.keys(tags) });
+          // Try each location tag in order of preference
+          let latitude: number | null = null;
+          let longitude: number | null = null;
+          for (const tagName of LOCATION_TAG_NAMES) {
+            const value = tags[tagName];
+            if (value) {
+              const parsed = parseISO6709(value);
+              if (parsed) {
+                latitude = parsed.latitude;
+                longitude = parsed.longitude;
+                logger.debug('Found GPS location', { tagName, value, latitude, longitude });
+                break;
+              }
+            }
+          }
 
-          resolve(creationTime || duration ? { creationTime, duration } : null);
+          logger.debug('Video metadata parsed', { creationTime, duration, latitude, longitude, availableTags: Object.keys(tags) });
+
+          resolve(creationTime || duration || latitude ? { creationTime, duration, latitude, longitude } : null);
         } catch (err) {
           logger.warn('Failed to parse ffprobe JSON', { error: (err as Error).message });
           resolve(null);

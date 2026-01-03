@@ -2,7 +2,6 @@ import { prisma } from '../database/prisma';
 import { s3Service } from './s3.service';
 import { claudeService } from './claude.service';
 import { exifService } from './exif.service';
-import { setlistService } from './setlist.service';
 import { ffmpegService } from './ffmpeg.service';
 import { concertMatchingService } from './concert-matching.service';
 import { Logger } from '../utils/logger';
@@ -83,23 +82,30 @@ export const mediaAnalysisService = {
       // Get buffer for EXIF extraction
       const mediaBuffer = await s3Service.getObject(media.storagePath);
 
+      let takenAtFromMetadata: Date | null = null;
+      let latFromMetadata: number | null = null;
+      let lngFromMetadata: number | null = null;
+
       // Extract metadata first and save immediately
       // This ensures we get the date even if Claude analysis fails
       if (mediaBuffer) {
-        let takenAtFromMetadata: Date | null = null;
         let durationFromMetadata: number | null = null;
         let thumbnailPath: string | null = null;
 
         if (media.mediaType === 'video') {
-          // For videos, use FFmpeg to extract creation time and generate thumbnail
+          // For videos, use FFmpeg to extract creation time, duration, and GPS
           const videoMeta = await ffmpegService.extractMetadata(mediaBuffer);
           if (videoMeta) {
             takenAtFromMetadata = videoMeta.creationTime;
             durationFromMetadata = videoMeta.duration;
+            latFromMetadata = videoMeta.latitude;
+            lngFromMetadata = videoMeta.longitude;
             logger.info('Video metadata extracted', {
               mediaId,
               creationTime: videoMeta.creationTime,
               duration: videoMeta.duration,
+              latitude: videoMeta.latitude,
+              longitude: videoMeta.longitude,
             });
           }
 
@@ -158,9 +164,9 @@ export const mediaAnalysisService = {
       // Get presigned URL for Claude
       const mediaUrl = await s3Service.generateDownloadUrl(media.storagePath);
 
-      const takenAt = exif?.takenAt ?? media.takenAt;
-      const lat = exif?.latitude ?? (media.locationLat ? Number(media.locationLat) : undefined);
-      const lng = exif?.longitude ?? (media.locationLng ? Number(media.locationLng) : undefined);
+      const takenAt = takenAtFromMetadata ?? exif?.takenAt ?? media.takenAt;
+      const lat = latFromMetadata ?? exif?.latitude ?? (media.locationLat ? Number(media.locationLat) : undefined);
+      const lng = lngFromMetadata ?? exif?.longitude ?? (media.locationLng ? Number(media.locationLng) : undefined);
 
       // Prepare metadata for Claude
       const analysisMetadata = {
@@ -170,35 +176,36 @@ export const mediaAnalysisService = {
         originalFilename: media.originalFilename ?? undefined,
       };
 
-      // Parallel: Setlist.fm lookup + Claude analysis (photo or video frames)
-      const [geoMatch, visualAnalysis] = await Promise.all([
-        lat && lng && takenAt
-          ? setlistService.findByLocation(lat, lng, new Date(takenAt))
-          : Promise.resolve(null),
-        media.mediaType === 'video' && mediaBuffer
-          ? ffmpegService.extractFrames(mediaBuffer, media.duration ?? undefined)
-              .then((frames) => frames.length > 0
-                ? claudeService.analyzeFrames(frames, analysisMetadata)
-                : claudeService.analyzePhoto(mediaUrl, analysisMetadata))
-          : claudeService.analyzePhoto(mediaUrl, analysisMetadata),
-      ]);
-
-      if (geoMatch) {
-        logger.info('Setlist.fm match', { venue: geoMatch.venueName, artists: geoMatch.artists.length });
+      // Claude analysis (photo or video frames)
+      // GPS matching now happens directly in concertMatchingService using venue coordinates
+      let visualAnalysis = null;
+      try {
+        if (media.mediaType === 'video' && mediaBuffer) {
+          const frames = await ffmpegService.extractFrames(mediaBuffer, media.duration ?? undefined);
+          visualAnalysis = frames.length > 0
+            ? await claudeService.analyzeFrames(frames, analysisMetadata)
+            : await claudeService.analyzePhoto(mediaUrl, analysisMetadata);
+        } else {
+          visualAnalysis = await claudeService.analyzePhoto(mediaUrl, analysisMetadata);
+        }
+      } catch (err) {
+        logger.warn('Claude analysis failed, continuing with metadata-only matching', {
+          error: (err as Error).message,
+        });
       }
 
-      // Combine signals
+      // Combine signals (visualAnalysis may be null if Claude failed)
       const analysis = {
-        ...visualAnalysis,
-        setlistMatch: geoMatch,
+        ...(visualAnalysis || {}),
         exifExtracted: !!exif,
+        claudeAnalysisFailed: !visualAnalysis,
       };
 
       // Update with AI analysis results
       await prisma.media.update({
         where: { id: mediaId },
         data: {
-          analysisStatus: 'completed',
+          analysisStatus: visualAnalysis ? 'completed' : 'completed', // Still completed, just without AI
           analysisCompletedAt: new Date(),
           aiAnalysis: analysis as object,
         },
@@ -207,9 +214,9 @@ export const mediaAnalysisService = {
       logger.info('Analysis completed', {
         mediaId,
         hasExif: !!exif,
-        hasTakenAt: !!exif?.takenAt,
-        hasGps: !!(exif?.latitude && exif?.longitude),
-        hasSetlistMatch: !!geoMatch,
+        hasTakenAt: !!takenAt,
+        hasGps: !!(lat && lng),
+        hasClaudeAnalysis: !!visualAnalysis,
       });
 
       // Attempt to match media to existing concerts
@@ -220,7 +227,6 @@ export const mediaAnalysisService = {
         locationLat: lat ?? null,
         locationLng: lng ?? null,
         visualAnalysis,
-        setlistMatch: geoMatch,
       });
 
       if (matchResult.autoMatched) {

@@ -20,11 +20,6 @@ export interface MatchSignals {
   locationLat: number | null;
   locationLng: number | null;
   visualAnalysis: PhotoAnalysis | null;
-  setlistMatch: {
-    venueName: string;
-    city: string;
-    artists: { name: string }[];
-  } | null;
 }
 
 export interface MatchMetadata {
@@ -34,7 +29,6 @@ export interface MatchMetadata {
     dateMatch: boolean;
     venueMatch: boolean;
     artistMatch: boolean;
-    setlistConfirmed: boolean;
   };
   matchedVia: string;
 }
@@ -47,6 +41,26 @@ export interface ConcertMatch {
 export interface MatchResult {
   autoMatched: ConcertMatch | null;
   suggestions: ConcertMatch[];
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// GPS Distance (Haversine formula)
+// ─────────────────────────────────────────────────────────────────────────────
+
+const GPS_MATCH_RADIUS_KM = 2;
+
+/**
+ * Calculate great-circle distance between two GPS coordinates
+ * @returns Distance in kilometers
+ */
+function haversine(lat1: number, lng1: number, lat2: number, lng2: number): number {
+  const R = 6371; // Earth's radius in km
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLng = ((lng2 - lng1) * Math.PI) / 180;
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos((lat1 * Math.PI) / 180) * Math.cos((lat2 * Math.PI) / 180) * Math.sin(dLng / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -110,54 +124,42 @@ function datesMatch(mediaDate: Date, startDate: Date, endDate: Date | null): boo
 // Scoring Logic
 // ─────────────────────────────────────────────────────────────────────────────
 
-interface ScoringInput {
-  gpsMatch: boolean;
-  dateMatch: boolean;
-  venueMatch: boolean;
-  artistMatch: boolean;
-  setlistConfirmed: boolean;
-  visualConfidence: number; // 0-1 from Claude
-}
-
 /**
  * Calculate match confidence score based on available signals
  *
  * Scoring rationale:
  * - GPS + date is near-certain (0.95) - you were physically there
- * - Setlist.fm match is very strong (0.90) - authoritative source
- * - Venue + artist + date is strong (0.85) - multiple confirmations
+ * - Venue + artist + date is strong - multiple confirmations
  * - Single signals are weaker and stack
  */
-function calculateConfidence(input: ScoringInput): { confidence: number; matchedVia: string } {
-  const { gpsMatch, dateMatch, venueMatch, artistMatch, setlistConfirmed, visualConfidence } = input;
+function calculateConfidence(
+  signals: MatchMetadata['signals'],
+  visualConfidence: number
+): { confidence: number; matchedVia: string } {
+  const { gpsMatch, dateMatch, venueMatch, artistMatch } = signals;
 
   // Tier 1: GPS + date = near certain
   if (gpsMatch && dateMatch) {
     return { confidence: 0.95, matchedVia: 'gps+date' };
   }
 
-  // Tier 2: Setlist.fm confirmed + date = very strong
-  if (setlistConfirmed && dateMatch) {
-    return { confidence: 0.90, matchedVia: 'setlist+date' };
-  }
-
-  // Tier 3: Multiple signals stacking
+  // Tier 2: Multiple signals stacking
   let score = 0;
-  const signals: string[] = [];
+  const matchedSignals: string[] = [];
 
   if (dateMatch) {
     score += 0.35;
-    signals.push('date');
+    matchedSignals.push('date');
   }
 
   if (venueMatch) {
     score += 0.30;
-    signals.push('venue');
+    matchedSignals.push('venue');
   }
 
   if (artistMatch) {
     score += 0.25;
-    signals.push('artist');
+    matchedSignals.push('artist');
   }
 
   // Visual confidence acts as a multiplier on artist/venue matches
@@ -166,8 +168,8 @@ function calculateConfidence(input: ScoringInput): { confidence: number; matched
   }
 
   return {
-    confidence: Math.min(score, 0.89), // Cap below Tier 2
-    matchedVia: signals.join('+') || 'none',
+    confidence: Math.min(score, 0.94), // Cap below Tier 1
+    matchedVia: matchedSignals.join('+') || 'none',
   };
 }
 
@@ -180,11 +182,13 @@ export const concertMatchingService = {
    * Find matching concerts for analyzed media
    */
   async findMatches(signals: MatchSignals): Promise<MatchResult> {
-    const { userId, takenAt, locationLat, locationLng, visualAnalysis, setlistMatch } = signals;
+    const { userId, takenAt, locationLat, locationLng, visualAnalysis } = signals;
+
+    logger.info('Finding matches', { userId, takenAt, hasGps: !!(locationLat && locationLng) });
 
     // Need at least a date to attempt matching
     if (!takenAt) {
-      logger.debug('No takenAt date, skipping match');
+      logger.info('No takenAt date, skipping match');
       return { autoMatched: null, suggestions: [] };
     }
 
@@ -195,6 +199,8 @@ export const concertMatchingService = {
     searchStart.setDate(searchStart.getDate() - 10);
     const searchEnd = new Date(takenAt);
     searchEnd.setDate(searchEnd.getDate() + 10);
+
+    logger.info('Searching concerts', { searchStart, searchEnd });
 
     const concerts = await prisma.concert.findMany({
       where: {
@@ -217,8 +223,10 @@ export const concertMatchingService = {
       },
     });
 
+    logger.info('Found concerts in search window', { count: concerts.length });
+
     if (concerts.length === 0) {
-      logger.debug('No concerts in date range', { userId, takenAt });
+      logger.info('No concerts in date range', { userId, takenAt });
       return { autoMatched: null, suggestions: [] };
     }
 
@@ -226,62 +234,78 @@ export const concertMatchingService = {
     const matches: ConcertMatch[] = [];
 
     for (const concert of concerts) {
-      const signalResults = {
+      const signalResults: MatchMetadata['signals'] = {
         gpsMatch: false,
         dateMatch: false,
         venueMatch: false,
         artistMatch: false,
-        setlistConfirmed: false,
       };
 
       // Date check (supports multi-day events via concertEndDate)
       signalResults.dateMatch = datesMatch(takenAt, concert.concertDate, concert.concertEndDate);
 
-      // GPS check via setlist.fm
-      // setlistService.findByLocation already verified media GPS is within 2km of a venue
-      // with an event on that date, so if we have a setlistMatch, GPS is implicitly confirmed
-      if (locationLat && locationLng && setlistMatch) {
-        signalResults.gpsMatch = true;
+      logger.info('Checking concert', {
+        concertId: concert.id,
+        concertDate: concert.concertDate,
+        concertEndDate: concert.concertEndDate,
+        mediaDate: takenAt,
+        dateMatch: signalResults.dateMatch,
+      });
+
+      // GPS check: Compare media GPS to venue GPS (if venue has coordinates)
+      if (locationLat && locationLng && concert.venue?.latitude && concert.venue?.longitude) {
+        const distance = haversine(
+          locationLat,
+          locationLng,
+          Number(concert.venue.latitude),
+          Number(concert.venue.longitude)
+        );
+        if (distance <= GPS_MATCH_RADIUS_KM) {
+          signalResults.gpsMatch = true;
+          logger.debug('GPS match', {
+            concertId: concert.id,
+            venueName: concert.venue.name,
+            distance: distance.toFixed(2) + 'km',
+          });
+        }
       }
 
-      // Venue name check (also consider city for additional confidence)
+      // Venue name check (from Claude visual analysis)
       const venueNameFromAnalysis = visualAnalysis?.venue?.name;
-      const venueNameFromSetlist = setlistMatch?.venueName;
+      const venueCityFromAnalysis = visualAnalysis?.venue?.city;
       const concertVenueName = concert.venue?.name;
       const concertVenueCity = concert.venue?.city;
 
-      const venueNameMatches = stringsMatch(venueNameFromAnalysis, concertVenueName) ||
-                               stringsMatch(venueNameFromSetlist, concertVenueName);
-      const venueCityMatches = stringsMatch(setlistMatch?.city, concertVenueCity) ||
-                               stringsMatch(visualAnalysis?.venue?.city, concertVenueCity);
+      const venueNameMatches = stringsMatch(venueNameFromAnalysis, concertVenueName);
+      const venueCityMatches = stringsMatch(venueCityFromAnalysis, concertVenueCity);
 
-      if (venueNameMatches || (venueCityMatches && (venueNameFromAnalysis || venueNameFromSetlist))) {
+      if (venueNameMatches || (venueCityMatches && venueNameFromAnalysis)) {
         signalResults.venueMatch = true;
       }
 
-      // Artist check
+      // Artist check (from Claude visual analysis)
       const artistFromAnalysis = visualAnalysis?.artist?.name;
-      const artistsFromSetlist = setlistMatch?.artists?.map(a => a.name) || [];
       const concertArtists = concert.artists.map(ca => ca.artist.name);
 
       for (const concertArtist of concertArtists) {
-        if (stringsMatch(artistFromAnalysis, concertArtist) ||
-            artistsFromSetlist.some(name => stringsMatch(name, concertArtist))) {
+        if (stringsMatch(artistFromAnalysis, concertArtist)) {
           signalResults.artistMatch = true;
           break;
         }
       }
 
-      // Setlist confirmation (setlist exists and we have a date match)
-      // Note: setlistMatch was already filtered by date in setlistService.findByLocation
-      if (setlistMatch && signalResults.dateMatch) {
-        signalResults.setlistConfirmed = true;
-      }
-
       // Calculate confidence
-      const { confidence, matchedVia } = calculateConfidence({
-        ...signalResults,
-        visualConfidence: visualAnalysis?.overallConfidence || 0,
+      const { confidence, matchedVia } = calculateConfidence(
+        signalResults,
+        visualAnalysis?.overallConfidence || 0
+      );
+
+      logger.info('Concert score', {
+        concertId: concert.id,
+        confidence,
+        matchedVia,
+        signals: signalResults,
+        meetsThreshold: confidence >= SUGGESTION_THRESHOLD,
       });
 
       if (confidence >= SUGGESTION_THRESHOLD) {
@@ -315,7 +339,7 @@ export const concertMatchingService = {
       };
     }
 
-    logger.debug('No auto-match, returning suggestions', {
+    logger.info('No auto-match, returning suggestions', {
       count: matches.length,
       topConfidence: topMatch?.metadata.confidence,
     });

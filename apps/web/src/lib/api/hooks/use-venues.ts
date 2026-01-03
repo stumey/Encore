@@ -13,6 +13,8 @@ export interface SetlistFmVenueResult {
   id: string | null;
   setlistFmId: string;
   name: string;
+  latitude: number | null;
+  longitude: number | null;
   city: string | null;
   state: string | null;
   country: string | null;
@@ -88,6 +90,8 @@ export function useCreateVenueFromSetlist() {
         {
           setlistFmId: venue.setlistFmId,
           name: venue.name,
+          latitude: venue.latitude,
+          longitude: venue.longitude,
           city: venue.city,
           state: venue.state,
           country: venue.country,
@@ -97,6 +101,33 @@ export function useCreateVenueFromSetlist() {
     },
     onSuccess: () => {
       // Invalidate venue searches to include newly cached venue
+      queryClient.invalidateQueries({ queryKey: VENUE_KEYS.searches() });
+    },
+  });
+}
+
+// Input for manual venue creation
+export interface ManualVenueInput {
+  name: string;
+  city?: string;
+  state?: string;
+  country?: string;
+}
+
+/**
+ * Create a venue manually
+ * POST /venues
+ * Used when venue doesn't exist in Setlist.fm
+ */
+export function useCreateVenue() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (venue: ManualVenueInput) => {
+      const response = await apiClient.post<ApiResponse<Venue>>('/venues', venue);
+      return response.data;
+    },
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: VENUE_KEYS.searches() });
     },
   });

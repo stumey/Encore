@@ -4,7 +4,7 @@ import { useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { useCreateConcert } from '@/lib/api/hooks/use-concerts';
 import { useArtists, useCreateArtistFromGenius, GeniusArtistResult } from '@/lib/api/hooks/use-artists';
-import { useVenues, useCreateVenueFromSetlist, SetlistFmVenueResult } from '@/lib/api/hooks/use-venues';
+import { useVenues, useCreateVenueFromSetlist, useCreateVenue, SetlistFmVenueResult } from '@/lib/api/hooks/use-venues';
 import { useLineupSuggestions, useAddSuggestedArtists } from '@/lib/api/hooks/use-lineup-suggestions';
 import { Button } from '@/components/ui/button';
 import { TextInput } from '@/components/ui/text-input';
@@ -37,6 +37,7 @@ export default function NewConcertPage() {
   const router = useRouter();
   const createConcert = useCreateConcert();
   const createVenueFromSetlist = useCreateVenueFromSetlist();
+  const createVenue = useCreateVenue();
   const createArtistFromGenius = useCreateArtistFromGenius();
 
   // Form state
@@ -52,7 +53,6 @@ export default function NewConcertPage() {
   const [artistSearchQuery, setArtistSearchQuery] = useState('');
   const [venueSearchQuery, setVenueSearchQuery] = useState('');
   const [showArtistSearch, setShowArtistSearch] = useState(false);
-  const [showVenueSearch, setShowVenueSearch] = useState(false);
 
   // Lineup suggestion state
   const [showLineupModal, setShowLineupModal] = useState(false);
@@ -131,7 +131,6 @@ export default function NewConcertPage() {
     if (venue.id) {
       setSelectedVenue(venue as Venue);
       setVenueSearchQuery('');
-      setShowVenueSearch(false);
       return;
     }
 
@@ -141,7 +140,6 @@ export default function NewConcertPage() {
         const savedVenue = await createVenueFromSetlist.mutateAsync(venue as SetlistFmVenueResult);
         setSelectedVenue(savedVenue);
         setVenueSearchQuery('');
-        setShowVenueSearch(false);
       } catch (error) {
         console.error('Failed to save venue:', error);
       }
@@ -408,7 +406,10 @@ export default function NewConcertPage() {
                     </div>
                     <Button
                       type="button"
-                      onClick={() => setSelectedVenue(null)}
+                      onClick={() => {
+                        setSelectedVenue(null);
+                        setVenueSearchQuery('');
+                      }}
                       variant="ghost"
                       size="sm"
                     >
@@ -427,18 +428,75 @@ export default function NewConcertPage() {
                   )}
                 </>
               ) : (
-                <Button
-                  type="button"
-                  onClick={() => setShowVenueSearch(true)}
-                  variant="outline"
-                  fullWidth
-                >
-                  <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                  </svg>
-                  Select Venue
-                </Button>
+                <div className="relative">
+                  <TextInput
+                    type="text"
+                    placeholder="Search or type venue name..."
+                    value={venueSearchQuery}
+                    onChange={(e) => setVenueSearchQuery(e.target.value)}
+                    fullWidth
+                  />
+                  {/* Dropdown */}
+                  {venueSearchQuery.length > 0 && (
+                    <div className="absolute z-10 w-full mt-1 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 rounded-lg shadow-lg max-h-64 overflow-y-auto">
+                      {venuesLoading && (
+                        <div className="flex justify-center py-4">
+                          <Spinner size="sm" />
+                        </div>
+                      )}
+
+                      {!venuesLoading && venueSearchResults?.data && venueSearchResults.data.length > 0 && (
+                        <>
+                          {venueSearchResults.source === 'setlistfm' && (
+                            <p className="text-xs text-gray-500 dark:text-gray-400 px-3 py-2 border-b border-gray-100 dark:border-slate-700">
+                              From Setlist.fm
+                            </p>
+                          )}
+                          {venueSearchResults.data.map((venue, index) => (
+                            <button
+                              key={venue.id || `setlist-${index}`}
+                              type="button"
+                              onClick={() => handleSelectVenue(venue)}
+                              disabled={createVenueFromSetlist.isPending}
+                              className="w-full flex items-start gap-3 px-3 py-2 hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors text-left disabled:opacity-50"
+                            >
+                              <span className="text-primary-600 dark:text-primary-400 mt-0.5">📍</span>
+                              <div className="flex-1 min-w-0">
+                                <p className="font-medium text-gray-900 dark:text-white truncate">{venue.name}</p>
+                                {(venue.city || venue.state || venue.country) && (
+                                  <p className="text-sm text-gray-500 dark:text-gray-400 truncate">
+                                    {[venue.city, venue.state, venue.country].filter(Boolean).join(', ')}
+                                  </p>
+                                )}
+                              </div>
+                            </button>
+                          ))}
+                        </>
+                      )}
+
+                      {/* Always show "Use [query]" option */}
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          try {
+                            const newVenue = await createVenue.mutateAsync({ name: venueSearchQuery });
+                            setSelectedVenue(newVenue);
+                            setVenueSearchQuery('');
+                          } catch (error) {
+                            console.error('Failed to create venue:', error);
+                          }
+                        }}
+                        disabled={createVenue.isPending}
+                        className="w-full flex items-center gap-3 px-3 py-2 hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors text-left border-t border-gray-100 dark:border-slate-700 disabled:opacity-50"
+                      >
+                        <span className="text-green-600 dark:text-green-400">+</span>
+                        <span className="text-gray-700 dark:text-gray-300">
+                          Use "<span className="font-medium">{venueSearchQuery}</span>"
+                        </span>
+                      </button>
+                    </div>
+                  )}
+                </div>
               )}
             </CardContent>
           </Card>
@@ -568,83 +626,6 @@ export default function NewConcertPage() {
           {!artistSearchQuery && (
             <p className="text-center text-gray-500 dark:text-gray-400 py-8">
               Start typing to search for artists
-            </p>
-          )}
-        </div>
-      </Modal>
-
-      {/* Venue Search Modal */}
-      <Modal
-        isOpen={showVenueSearch}
-        onClose={() => {
-          setShowVenueSearch(false);
-          setVenueSearchQuery('');
-        }}
-        title="Search Venues"
-        size="lg"
-      >
-        <div className="space-y-4">
-          <TextInput
-            type="search"
-            placeholder="Search for a venue..."
-            value={venueSearchQuery}
-            onChange={(e) => setVenueSearchQuery(e.target.value)}
-            fullWidth
-            autoFocus
-          />
-
-          {venuesLoading && (
-            <div className="flex justify-center py-8">
-              <Spinner size="md" />
-            </div>
-          )}
-
-          {!venuesLoading && venueSearchQuery && (!venueSearchResults?.data || venueSearchResults.data.length === 0) && (
-            <p className="text-center text-gray-500 dark:text-gray-400 py-8">
-              No venues found. Try a different search term.
-            </p>
-          )}
-
-          {!venuesLoading && venueSearchResults?.data && venueSearchResults.data.length > 0 && (
-            <div className="space-y-2 max-h-96 overflow-y-auto">
-              {venueSearchResults.source === 'setlistfm' && (
-                <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">
-                  Results from Setlist.fm
-                </p>
-              )}
-              {venueSearchResults.data.map((venue, index) => (
-                <button
-                  key={venue.id || `setlist-${index}`}
-                  type="button"
-                  onClick={() => handleSelectVenue(venue)}
-                  disabled={createVenueFromSetlist.isPending}
-                  className="w-full flex items-start gap-3 p-3 bg-gray-50 dark:bg-slate-700 hover:bg-gray-100 dark:hover:bg-slate-600 rounded-lg transition-colors text-left disabled:opacity-50"
-                >
-                  <div className="flex-shrink-0 h-10 w-10 bg-primary-100 dark:bg-primary-900 rounded-lg flex items-center justify-center">
-                    <svg className="h-6 w-6 text-primary-600 dark:text-primary-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                    </svg>
-                  </div>
-                  <div className="flex-1">
-                    <h4 className="font-medium text-gray-900 dark:text-white">{venue.name}</h4>
-                    {(venue.city || venue.state || venue.country) && (
-                      <p className="text-sm text-gray-600 dark:text-gray-400">
-                        {[venue.city, venue.state, venue.country].filter(Boolean).join(', ')}
-                      </p>
-                    )}
-                  </div>
-                  <svg className="h-5 w-5 text-gray-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                  </svg>
-                </button>
-              ))}
-            </div>
-          )}
-
-          {!venueSearchQuery && (
-            <p className="text-center text-gray-500 dark:text-gray-400 py-8">
-              Start typing to search for venues
             </p>
           )}
         </div>

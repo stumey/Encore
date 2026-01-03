@@ -26,6 +26,8 @@ export interface Venue {
   id: string;
   name: string;
   setlistFmId: string | null;
+  latitude: number | string | null;
+  longitude: number | string | null;
   city: string | null;
   state: string | null;
   country: string | null;
