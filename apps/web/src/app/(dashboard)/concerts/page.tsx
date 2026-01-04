@@ -3,10 +3,10 @@
 import { useState, useMemo } from 'react';
 import { useConcerts } from '@/lib/api/hooks/use-concerts';
 import { ConcertCard } from '@/components/concerts/concert-card';
+import { ConcertsGridSkeleton } from '@/components/concerts/concerts-skeleton';
 import { Button } from '@/components/ui/button';
 import { TextInput } from '@/components/ui/text-input';
 import { EmptyState, EmptyStateIcon } from '@/components/ui/empty-state';
-import { Spinner } from '@/components/ui/spinner';
 import { useRouter } from 'next/navigation';
 
 /**
@@ -90,7 +90,7 @@ export default function ConcertsPage() {
               size="lg"
             >
               <svg
-                className="h-5 w-5"
+                className="h-5 w-5 mr-1 transition-transform duration-200 group-hover:rotate-90"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -147,9 +147,7 @@ export default function ConcertsPage() {
       {/* Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {isLoading ? (
-          <div className="flex items-center justify-center py-12">
-            <Spinner size="lg" />
-          </div>
+          <ConcertsGridSkeleton count={6} />
         ) : filteredConcerts.length === 0 ? (
           <EmptyState
             icon={<EmptyStateIcon />}
@@ -175,8 +173,14 @@ export default function ConcertsPage() {
           <>
             {/* Concert Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredConcerts.map((concert) => (
-                <ConcertCard key={concert.id} concert={concert} />
+              {filteredConcerts.map((concert, index) => (
+                <div
+                  key={concert.id}
+                  className="opacity-0 animate-fade-in-up"
+                  style={{ animationDelay: `${index * 75}ms` }}
+                >
+                  <ConcertCard concert={concert} />
+                </div>
               ))}
             </div>
 

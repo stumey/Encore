@@ -5,10 +5,10 @@ import Link from 'next/link';
 import { useMedia, useDeleteMedia } from '@/lib/api/hooks/use-media';
 import { MediaGrid } from '@/components/media/media-grid';
 import { MediaModal } from '@/components/media/media-modal';
+import { MediaGridSkeleton } from '@/components/media/media-skeleton';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { EmptyState } from '@/components/ui/empty-state';
-import { Spinner } from '@/components/ui/spinner';
 import type { MediaWithUrls } from '@encore/shared';
 import type { MediaType } from '@encore/shared';
 
@@ -101,8 +101,8 @@ export default function MediaPage() {
           </div>
           <Link href="/media/upload">
             <Button variant="primary" size="lg">
-              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+              <svg className="h-5 w-5 mr-1 transition-transform duration-200 group-hover:-translate-y-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
               </svg>
               Upload Media
             </Button>
@@ -146,9 +146,7 @@ export default function MediaPage() {
 
         {/* Content */}
         {isLoading ? (
-          <div className="flex items-center justify-center py-16">
-            <Spinner size="lg" />
-          </div>
+          <MediaGridSkeleton count={24} />
         ) : error ? (
           <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-6 text-center">
             <p className="text-red-700 dark:text-red-400">Failed to load media</p>

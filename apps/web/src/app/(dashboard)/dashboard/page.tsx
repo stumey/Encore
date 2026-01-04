@@ -3,14 +3,12 @@
 import { DashboardPageHeader, DashboardSection } from '@/components/layout';
 import {
   Card,
-  
-  
   CardContent,
   Button,
   Badge,
   Avatar,
-  Spinner,
   EmptyState,
+  ConcertCardSkeleton,
 } from '@/components/ui';
 import {
   useCurrentUser,
@@ -18,6 +16,8 @@ import {
   useConcerts,
 } from '@/lib/api';
 import { OnThisDay } from '@/components/dashboard/on-this-day';
+import { DashboardSkeleton } from '@/components/dashboard/dashboard-skeleton';
+import { StatCard } from '@/components/dashboard/stat-card';
 import { WelcomeModal } from '@/components/onboarding/welcome-modal';
 import { useOnboarding } from '@/hooks/use-onboarding';
 import Link from 'next/link';
@@ -88,14 +88,7 @@ export default function DashboardPage() {
   );
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="text-center">
-          <Spinner size="lg" className="text-primary-600" />
-          <p className="mt-4 text-gray-600">Loading dashboard...</p>
-        </div>
-      </div>
-    );
+    return <DashboardSkeleton />;
   }
 
   // Handle error states
@@ -127,7 +120,7 @@ export default function DashboardPage() {
               onClick={handleUploadMedia}
             >
               <svg
-                className="h-5 w-5 mr-2"
+                className="h-5 w-5 mr-2 transition-transform duration-200 group-hover:-translate-y-0.5"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -143,7 +136,7 @@ export default function DashboardPage() {
             </Button>
             <Button onClick={handleAddConcert}>
               <svg
-                className="h-5 w-5 mr-2"
+                className="h-5 w-5 mr-2 transition-transform duration-200 group-hover:rotate-90"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -164,127 +157,51 @@ export default function DashboardPage() {
       {/* Quick Stats Grid */}
       <DashboardSection>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {/* Total Concerts */}
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Total Concerts</p>
-                  <p className="text-3xl font-bold text-gray-900 dark:text-white mt-2">
-                    {stats?.totalConcerts || 0}
-                  </p>
-                </div>
-                <div className="h-12 w-12 bg-primary-100 rounded-lg flex items-center justify-center">
-                  <svg
-                    className="h-6 w-6 text-primary-600"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"
-                    />
-                  </svg>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Unique Artists */}
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Unique Artists</p>
-                  <p className="text-3xl font-bold text-gray-900 dark:text-white mt-2">
-                    {stats?.uniqueArtists || 0}
-                  </p>
-                </div>
-                <div className="h-12 w-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                  <svg
-                    className="h-6 w-6 text-blue-600"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
-                    />
-                  </svg>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Unique Venues */}
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Unique Venues</p>
-                  <p className="text-3xl font-bold text-gray-900 dark:text-white mt-2">
-                    {stats?.uniqueVenues || 0}
-                  </p>
-                </div>
-                <div className="h-12 w-12 bg-green-100 rounded-lg flex items-center justify-center">
-                  <svg
-                    className="h-6 w-6 text-green-600"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
-                    />
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
-                    />
-                  </svg>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Total Media */}
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Total Media</p>
-                  <p className="text-3xl font-bold text-gray-900 dark:text-white mt-2">
-                    {stats?.totalMedia || 0}
-                  </p>
-                </div>
-                <div className="h-12 w-12 bg-orange-100 rounded-lg flex items-center justify-center">
-                  <svg
-                    className="h-6 w-6 text-orange-600"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-                    />
-                  </svg>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+          <StatCard
+            label="Total Concerts"
+            value={stats?.totalConcerts || 0}
+            gradient="purple"
+            animationDelay={0}
+            icon={
+              <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
+              </svg>
+            }
+          />
+          <StatCard
+            label="Unique Artists"
+            value={stats?.uniqueArtists || 0}
+            gradient="blue"
+            animationDelay={75}
+            icon={
+              <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+              </svg>
+            }
+          />
+          <StatCard
+            label="Unique Venues"
+            value={stats?.uniqueVenues || 0}
+            gradient="green"
+            animationDelay={150}
+            icon={
+              <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+            }
+          />
+          <StatCard
+            label="Total Media"
+            value={stats?.totalMedia || 0}
+            gradient="orange"
+            animationDelay={225}
+            icon={
+              <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+            }
+          />
         </div>
       </DashboardSection>
 
@@ -297,28 +214,39 @@ export default function DashboardPage() {
           title="Most Seen Artist"
           description="Your favorite artist based on concert attendance"
         >
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-6">
-                <Avatar
-                  src={stats.mostSeenArtist.artist.imageUrl || undefined}
-                  name={stats.mostSeenArtist.artist.name}
-                  size="xl"
-                />
-                <div className="flex-1">
-                  <h3 className="text-2xl font-bold text-gray-900 dark:text-white">
-                    {stats.mostSeenArtist.artist.name}
-                  </h3>
-                  <p className="text-gray-600 dark:text-gray-300 mt-1">
-                    Seen {stats.mostSeenArtist.count} time{stats.mostSeenArtist.count !== 1 ? 's' : ''}
-                  </p>
+          <div
+            className="opacity-0 animate-fade-in-up"
+            style={{ animationDelay: '500ms' }}
+          >
+            <Card className="relative hover:shadow-lg transition-shadow duration-300 overflow-hidden">
+              {/* Subtle gradient background */}
+              <div className="absolute inset-0 bg-gradient-to-r from-primary-50/50 to-transparent dark:from-primary-950/30 pointer-events-none" />
+              <CardContent className="pt-6 relative">
+                <div className="flex items-center gap-6">
+                  <div className="relative">
+                    <div className="absolute inset-0 bg-gradient-to-br from-primary-400 to-primary-600 rounded-full blur-lg opacity-30" />
+                    <Avatar
+                      src={stats.mostSeenArtist.artist.imageUrl || undefined}
+                      name={stats.mostSeenArtist.artist.name}
+                      size="xl"
+                      className="relative"
+                    />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="text-2xl font-bold text-gray-900 dark:text-white">
+                      {stats.mostSeenArtist.artist.name}
+                    </h3>
+                    <p className="text-gray-600 dark:text-gray-300 mt-1">
+                      Seen {stats.mostSeenArtist.count} time{stats.mostSeenArtist.count !== 1 ? 's' : ''}
+                    </p>
+                  </div>
+                  <Link href={`/artists/${stats.mostSeenArtist.artist.id}`}>
+                    <Button variant="outline">View Artist</Button>
+                  </Link>
                 </div>
-                <Link href={`/artists/${stats.mostSeenArtist.artist.id}`}>
-                  <Button variant="outline">View Artist</Button>
-                </Link>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          </div>
         </DashboardSection>
       )}
 
@@ -335,8 +263,16 @@ export default function DashboardPage() {
         }
       >
         {concertsLoading ? (
-          <div className="flex justify-center py-12">
-            <Spinner size="lg" />
+          <div className="space-y-4">
+            {[0, 1, 2].map((index) => (
+              <div
+                key={index}
+                className="opacity-0 animate-fade-in-up"
+                style={{ animationDelay: `${index * 100}ms` }}
+              >
+                <ConcertCardSkeleton />
+              </div>
+            ))}
           </div>
         ) : recentConcerts.length === 0 ? (
           <EmptyState
@@ -350,8 +286,13 @@ export default function DashboardPage() {
           />
         ) : (
           <div className="space-y-4">
-            {recentConcerts.map((concert) => (
-              <Card key={concert.id} className="hover:shadow-lg transition-shadow">
+            {recentConcerts.map((concert, index) => (
+              <div
+                key={concert.id}
+                className="opacity-0 animate-fade-in-up"
+                style={{ animationDelay: `${300 + index * 100}ms` }}
+              >
+              <Card className="hover:shadow-lg hover:scale-[1.01] transition-all duration-300">
                 <CardContent className="pt-6">
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
@@ -421,6 +362,7 @@ export default function DashboardPage() {
                   </div>
                 </CardContent>
               </Card>
+              </div>
             ))}
           </div>
         )}

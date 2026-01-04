@@ -1,11 +1,13 @@
 'use client';
 
-import { useState, useCallback, useTransition } from 'react';
+import { useState, useCallback, useTransition, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { useUploadUrl, useCreateMedia, useAnalyzeMedia } from '@/lib/api/hooks/use-media';
 import { useUserStats } from '@/lib/api/hooks/use-user';
 import { UploadDropzone } from '@/components/media/upload-dropzone';
 import { UploadReview } from '@/components/media/upload-review';
+import { UploadSteps } from '@/components/media/upload-steps';
 import { UpgradeModal } from '@/components/modals/upgrade-modal';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
@@ -244,26 +246,54 @@ export default function MediaUploadPage() {
   const isNearLimit = remainingUploads <= 5 && remainingUploads > 0;
   const isAtLimit = remainingUploads === 0;
 
+  // Determine current step for the progress indicator
+  const currentStep = useMemo((): 'select' | 'upload' | 'review' | 'complete' => {
+    if (showReview) return 'review';
+    if (isUploading) return 'upload';
+    if (completedCount > 0 && pendingCount === 0 && !showReview) return 'complete';
+    return 'select';
+  }, [showReview, isUploading, completedCount, pendingCount]);
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-slate-900">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Header */}
+        {/* Header with breadcrumb navigation */}
         <div className="mb-6">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => router.push('/media')}
-          >
-            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+          <nav className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 mb-4">
+            <Link
+              href="/media"
+              className="hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
+            >
+              Media
+            </Link>
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
             </svg>
-            Back to Media
-          </Button>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mt-4">Upload Media</h1>
-          <p className="text-gray-500 dark:text-gray-400 mt-1">
-            Add photos and videos from your concerts
-          </p>
+            <span className="text-gray-900 dark:text-white font-medium">Upload</span>
+          </nav>
+
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Upload Media</h1>
+              <p className="text-gray-500 dark:text-gray-400 mt-1">
+                Add photos and videos from your concerts
+              </p>
+            </div>
+            {hasFiles && (
+              <Link href="/media">
+                <Button variant="ghost" size="sm">
+                  <svg className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                  Cancel
+                </Button>
+              </Link>
+            )}
+          </div>
         </div>
+
+        {/* Step Indicator */}
+        {hasFiles && <UploadSteps currentStep={currentStep} />}
 
         {/* Free Tier Usage Banner - Prominent at top */}
         {!isPremium && (
@@ -514,24 +544,38 @@ export default function MediaUploadPage() {
           />
         )}
 
-        {/* Success Message (only if not showing review) */}
+        {/* Success Message (only if not showing review and not using AI) */}
         {!showReview && completedCount > 0 && pendingCount === 0 && errorCount === 0 && (
-          <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-6 text-center">
-            <svg className="h-12 w-12 text-green-500 mx-auto mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            <h3 className="text-lg font-semibold text-green-900 dark:text-green-100">Upload Complete!</h3>
-            <p className="text-sm text-green-700 dark:text-green-300 mt-1">
-              Successfully uploaded {completedCount} file{completedCount !== 1 ? 's' : ''}
+          <div className="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 border border-green-200 dark:border-green-800 rounded-xl p-8 text-center opacity-0 animate-fade-in-up">
+            <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-emerald-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg shadow-green-500/25">
+              <svg className="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+            <h3 className="text-xl font-bold text-green-900 dark:text-green-100">Upload Complete!</h3>
+            <p className="text-green-700 dark:text-green-300 mt-2">
+              Successfully uploaded {completedCount} file{completedCount !== 1 ? 's' : ''} to your gallery
             </p>
-            <Button
-              variant="primary"
-              size="md"
-              onClick={() => router.push('/media')}
-              className="mt-4"
-            >
-              View Media Gallery
-            </Button>
+            <div className="flex items-center justify-center gap-3 mt-6">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setFiles([]);
+                  setUploadedMediaIds([]);
+                }}
+              >
+                Upload More
+              </Button>
+              <Button
+                variant="primary"
+                onClick={() => router.push('/media')}
+              >
+                <svg className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                View Gallery
+              </Button>
+            </div>
           </div>
         )}
       </div>

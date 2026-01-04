@@ -1,4 +1,7 @@
 // UI Components
+export { AnimatedCounter } from './animated-counter';
+export type { AnimatedCounterProps } from './animated-counter';
+
 export { Avatar } from './avatar';
 export type { AvatarProps } from './avatar';
 
@@ -42,6 +45,9 @@ export type { EmptyStateProps } from './empty-state';
 
 export { Modal, ModalFooter } from './modal';
 export type { ModalProps, ModalFooterProps } from './modal';
+
+export { Skeleton, StatCardSkeleton, ConcertCardSkeleton } from './skeleton';
+export type { SkeletonProps } from './skeleton';
 
 export { Spinner } from './spinner';
 export type { SpinnerProps } from './spinner';
