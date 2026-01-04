@@ -18,6 +18,7 @@ export function ConcertCard({ concert, className = '' }: ConcertCardProps) {
     year: 'numeric',
     month: 'short',
     day: 'numeric',
+    timeZone: 'UTC',
   });
 
   // Get thumbnail from first media item or headliner artist

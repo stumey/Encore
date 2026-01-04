@@ -145,6 +145,7 @@ export function AiAnalysisCard({ analysis }: AiAnalysisCardProps) {
               month: 'long',
               day: 'numeric',
               year: 'numeric',
+              timeZone: 'UTC',
             })}
           </p>
         </div>

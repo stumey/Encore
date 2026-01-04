@@ -11,7 +11,7 @@ const logger = new Logger('ConcertMatchingService');
  * SUGGESTION: Worth showing to user as a potential match
  */
 const AUTO_MATCH_THRESHOLD = 0.80;
-const SUGGESTION_THRESHOLD = 0.50;
+const SUGGESTION_THRESHOLD = 0.35;
 
 
 export interface MatchSignals {
@@ -47,7 +47,7 @@ export interface MatchResult {
 // GPS Distance (Haversine formula)
 // ─────────────────────────────────────────────────────────────────────────────
 
-const GPS_MATCH_RADIUS_KM = 2;
+const GPS_MATCH_RADIUS_KM = 5;
 
 /**
  * Calculate great-circle distance between two GPS coordinates
@@ -109,8 +109,9 @@ function datesMatch(mediaDate: Date, startDate: Date, endDate: Date | null): boo
   // Calculate event duration in days (inclusive)
   const eventDays = Math.round((effectiveEnd.getTime() - startDate.getTime()) / msPerDay) + 1;
 
-  // Dynamic buffer: ceil(eventDays / 2), minimum 1 day
-  const bufferDays = Math.max(1, Math.ceil(eventDays / 2));
+  // Dynamic buffer: ceil(eventDays / 2), minimum 1.5 days
+  // 1.5 days covers all timezone interpretations of a calendar date globally
+  const bufferDays = Math.max(1.5, Math.ceil(eventDays / 2));
   const bufferMs = bufferDays * msPerDay;
 
   const rangeStart = startDate.getTime() - bufferMs;

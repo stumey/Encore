@@ -101,6 +101,30 @@ export function useArtist(id: string | null) {
   });
 }
 
+// Input for manual artist creation
+export interface ManualArtistInput {
+  name: string;
+}
+
+/**
+ * Create an artist manually
+ * POST /artists
+ * Used when artist doesn't exist in Genius
+ */
+export function useCreateArtist() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (artist: ManualArtistInput) => {
+      const response = await apiClient.post<ApiResponse<Artist>>('/artists', artist);
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ARTIST_KEYS.searches() });
+    },
+  });
+}
+
 /**
  * Get media for an artist
  * GET /artists/:id/media

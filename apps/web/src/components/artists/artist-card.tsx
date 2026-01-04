@@ -17,7 +17,8 @@ export function ArtistCard({ artist, onClick }: ArtistCardProps) {
     return dateObj.toLocaleDateString('en-US', {
       month: 'short',
       day: 'numeric',
-      year: 'numeric'
+      year: 'numeric',
+      timeZone: 'UTC',
     });
   };
 

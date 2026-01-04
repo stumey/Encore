@@ -3,7 +3,7 @@
 import { useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { useCreateConcert } from '@/lib/api/hooks/use-concerts';
-import { useArtists, useCreateArtistFromGenius, GeniusArtistResult } from '@/lib/api/hooks/use-artists';
+import { useArtists, useCreateArtistFromGenius, useCreateArtist, GeniusArtistResult } from '@/lib/api/hooks/use-artists';
 import { useVenues, useCreateVenueFromSetlist, useCreateVenue, SetlistFmVenueResult } from '@/lib/api/hooks/use-venues';
 import { useLineupSuggestions, useAddSuggestedArtists } from '@/lib/api/hooks/use-lineup-suggestions';
 import { Button } from '@/components/ui/button';
@@ -11,7 +11,6 @@ import { TextInput } from '@/components/ui/text-input';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Spinner } from '@/components/ui/spinner';
-import { Modal } from '@/components/ui/modal';
 import { LineupIndicator } from '@/components/concerts/lineup-indicator';
 import { LineupSuggestionModal } from '@/components/concerts/lineup-suggestion-modal';
 import type { Artist, Venue } from '@encore/shared';
@@ -39,6 +38,7 @@ export default function NewConcertPage() {
   const createVenueFromSetlist = useCreateVenueFromSetlist();
   const createVenue = useCreateVenue();
   const createArtistFromGenius = useCreateArtistFromGenius();
+  const createArtist = useCreateArtist();
 
   // Form state
   const [concertDate, setConcertDate] = useState('');
@@ -52,7 +52,6 @@ export default function NewConcertPage() {
   // Search state
   const [artistSearchQuery, setArtistSearchQuery] = useState('');
   const [venueSearchQuery, setVenueSearchQuery] = useState('');
-  const [showArtistSearch, setShowArtistSearch] = useState(false);
 
   // Lineup suggestion state
   const [showLineupModal, setShowLineupModal] = useState(false);
@@ -110,7 +109,6 @@ export default function NewConcertPage() {
     };
     setSelectedArtists([...selectedArtists, newArtist]);
     setArtistSearchQuery('');
-    setShowArtistSearch(false);
   };
 
   const handleRemoveArtist = (artistId: string) => {
@@ -365,18 +363,91 @@ export default function NewConcertPage() {
                   </div>
                 )}
 
-                {/* Add Artist Button */}
-                <Button
-                  type="button"
-                  onClick={() => setShowArtistSearch(true)}
-                  variant="outline"
-                  fullWidth
-                >
-                  <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                  </svg>
-                  Add Artist
-                </Button>
+                {/* Add Artist - Inline Autocomplete */}
+                <div className="relative">
+                  <TextInput
+                    type="text"
+                    placeholder="Search or type artist name..."
+                    value={artistSearchQuery}
+                    onChange={(e) => setArtistSearchQuery(e.target.value)}
+                    fullWidth
+                  />
+                  {/* Dropdown */}
+                  {artistSearchQuery.length > 0 && (
+                    <div className="absolute z-10 w-full mt-1 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 rounded-lg shadow-lg max-h-64 overflow-y-auto">
+                      {artistsLoading && (
+                        <div className="flex justify-center py-4">
+                          <Spinner size="sm" />
+                        </div>
+                      )}
+
+                      {!artistsLoading && availableArtists.length > 0 && (
+                        <>
+                          {artistSearchResults?.source === 'genius' && (
+                            <p className="text-xs text-gray-500 dark:text-gray-400 px-3 py-2 border-b border-gray-100 dark:border-slate-700">
+                              From Genius
+                            </p>
+                          )}
+                          {availableArtists.map((artist, index) => (
+                            <button
+                              key={artist.id || `genius-${index}`}
+                              type="button"
+                              onClick={() => handleAddArtist(artist)}
+                              disabled={createArtistFromGenius.isPending}
+                              className="w-full flex items-center gap-3 px-3 py-2 hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors text-left disabled:opacity-50"
+                            >
+                              {artist.imageUrl ? (
+                                <img
+                                  src={artist.imageUrl}
+                                  alt={artist.name}
+                                  className="h-8 w-8 rounded-full object-cover"
+                                />
+                              ) : (
+                                <span className="text-primary-600 dark:text-primary-400">🎤</span>
+                              )}
+                              <div className="flex-1 min-w-0">
+                                <p className="font-medium text-gray-900 dark:text-white truncate">{artist.name}</p>
+                                {artist.genres && artist.genres.length > 0 && (
+                                  <p className="text-sm text-gray-500 dark:text-gray-400 truncate">
+                                    {artist.genres.slice(0, 3).join(', ')}
+                                  </p>
+                                )}
+                              </div>
+                            </button>
+                          ))}
+                        </>
+                      )}
+
+                      {/* Only show "Use [query]" when no results and not loading */}
+                      {!artistsLoading && availableArtists.length === 0 && (
+                        <button
+                          type="button"
+                          onClick={async () => {
+                            try {
+                              const newArtist = await createArtist.mutateAsync({ name: artistSearchQuery });
+                              setSelectedArtists([...selectedArtists, {
+                                artistId: newArtist.id,
+                                artist: newArtist,
+                                isHeadliner: selectedArtists.length === 0,
+                                setOrder: selectedArtists.length + 1,
+                              }]);
+                              setArtistSearchQuery('');
+                            } catch (error) {
+                              console.error('Failed to create artist:', error);
+                            }
+                          }}
+                          disabled={createArtist.isPending}
+                          className="w-full flex items-center gap-3 px-3 py-2 hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors text-left disabled:opacity-50"
+                        >
+                          <span className="text-green-600 dark:text-green-400">+</span>
+                          <span className="text-gray-700 dark:text-gray-300">
+                            Use "<span className="font-medium">{artistSearchQuery}</span>"
+                          </span>
+                        </button>
+                      )}
+                    </div>
+                  )}
+                </div>
 
                 {selectedArtists.length === 0 && (
                   <p className="text-sm text-red-600 dark:text-red-400">At least one artist is required</p>
@@ -474,26 +545,28 @@ export default function NewConcertPage() {
                         </>
                       )}
 
-                      {/* Always show "Use [query]" option */}
-                      <button
-                        type="button"
-                        onClick={async () => {
-                          try {
-                            const newVenue = await createVenue.mutateAsync({ name: venueSearchQuery });
-                            setSelectedVenue(newVenue);
-                            setVenueSearchQuery('');
-                          } catch (error) {
-                            console.error('Failed to create venue:', error);
-                          }
-                        }}
-                        disabled={createVenue.isPending}
-                        className="w-full flex items-center gap-3 px-3 py-2 hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors text-left border-t border-gray-100 dark:border-slate-700 disabled:opacity-50"
-                      >
-                        <span className="text-green-600 dark:text-green-400">+</span>
-                        <span className="text-gray-700 dark:text-gray-300">
-                          Use "<span className="font-medium">{venueSearchQuery}</span>"
-                        </span>
-                      </button>
+                      {/* Only show "Use [query]" when no results and not loading */}
+                      {!venuesLoading && (!venueSearchResults?.data || venueSearchResults.data.length === 0) && (
+                        <button
+                          type="button"
+                          onClick={async () => {
+                            try {
+                              const newVenue = await createVenue.mutateAsync({ name: venueSearchQuery });
+                              setSelectedVenue(newVenue);
+                              setVenueSearchQuery('');
+                            } catch (error) {
+                              console.error('Failed to create venue:', error);
+                            }
+                          }}
+                          disabled={createVenue.isPending}
+                          className="w-full flex items-center gap-3 px-3 py-2 hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors text-left disabled:opacity-50"
+                        >
+                          <span className="text-green-600 dark:text-green-400">+</span>
+                          <span className="text-gray-700 dark:text-gray-300">
+                            Use "<span className="font-medium">{venueSearchQuery}</span>"
+                          </span>
+                        </button>
+                      )}
                     </div>
                   )}
                 </div>
@@ -553,84 +626,6 @@ export default function NewConcertPage() {
         </form>
       </div>
 
-      {/* Artist Search Modal */}
-      <Modal
-        isOpen={showArtistSearch}
-        onClose={() => {
-          setShowArtistSearch(false);
-          setArtistSearchQuery('');
-        }}
-        title="Search Artists"
-        size="lg"
-      >
-        <div className="space-y-4">
-          <TextInput
-            type="search"
-            placeholder="Search for an artist..."
-            value={artistSearchQuery}
-            onChange={(e) => setArtistSearchQuery(e.target.value)}
-            fullWidth
-            autoFocus
-          />
-
-          {artistsLoading && (
-            <div className="flex justify-center py-8">
-              <Spinner size="md" />
-            </div>
-          )}
-
-          {!artistsLoading && artistSearchQuery && availableArtists.length === 0 && (
-            <p className="text-center text-gray-500 dark:text-gray-400 py-8">
-              No artists found. Try a different search term.
-            </p>
-          )}
-
-          {!artistsLoading && availableArtists.length > 0 && (
-            <div className="space-y-2 max-h-96 overflow-y-auto">
-              {artistSearchResults?.source === 'genius' && (
-                <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">
-                  Results from Genius
-                </p>
-              )}
-              {availableArtists.map((artist, index) => (
-                <button
-                  key={artist.id || `genius-${index}`}
-                  type="button"
-                  onClick={() => handleAddArtist(artist)}
-                  disabled={createArtistFromGenius.isPending}
-                  className="w-full flex items-center gap-3 p-3 bg-gray-50 dark:bg-slate-700 hover:bg-gray-100 dark:hover:bg-slate-600 rounded-lg transition-colors text-left disabled:opacity-50"
-                >
-                  {artist.imageUrl && (
-                    <img
-                      src={artist.imageUrl}
-                      alt={artist.name}
-                      className="h-12 w-12 rounded-full object-cover"
-                    />
-                  )}
-                  <div className="flex-1">
-                    <h4 className="font-medium text-gray-900 dark:text-white">{artist.name}</h4>
-                    {artist.genres && artist.genres.length > 0 && (
-                      <p className="text-sm text-gray-600 dark:text-gray-400">
-                        {artist.genres.slice(0, 3).join(', ')}
-                      </p>
-                    )}
-                  </div>
-                  <svg className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                  </svg>
-                </button>
-              ))}
-            </div>
-          )}
-
-          {!artistSearchQuery && (
-            <p className="text-center text-gray-500 dark:text-gray-400 py-8">
-              Start typing to search for artists
-            </p>
-          )}
-        </div>
-      </Modal>
-
       {/* Lineup Suggestion Modal - shown after concert is created */}
       <LineupSuggestionModal
         isOpen={showLineupModal}
@@ -640,7 +635,7 @@ export default function NewConcertPage() {
         onConfirm={handleLineupConfirm}
         isLoading={addSuggestedArtists.isPending}
         eventDays={lineupData?.eventDays}
-        isMultiDay={lineupData?.isMultiDay}
+        isMultiDay={isMultiDay && lineupData?.isMultiDay}
         queriedDate={lineupData?.queriedDate}
       />
     </div>

@@ -14,7 +14,8 @@ export function ArtistStats({ artistData }: ArtistStatsProps) {
     return dateObj.toLocaleDateString('en-US', {
       month: 'long',
       day: 'numeric',
-      year: 'numeric'
+      year: 'numeric',
+      timeZone: 'UTC',
     });
   };
 

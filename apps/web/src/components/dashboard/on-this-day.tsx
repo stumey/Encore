@@ -96,6 +96,7 @@ export function OnThisDay() {
                           month: 'short',
                           day: 'numeric',
                           year: 'numeric',
+                          timeZone: 'UTC',
                         })}
                       </Badge>
                       {featuredConcert._count && featuredConcert._count.media > 0 && (

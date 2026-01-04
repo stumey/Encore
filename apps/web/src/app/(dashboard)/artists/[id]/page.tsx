@@ -238,6 +238,7 @@ export default function ArtistDetailPage() {
                     ? new Date(artistWithCount.firstSeen).toLocaleDateString('en-US', {
                         month: 'short',
                         year: 'numeric',
+                        timeZone: 'UTC',
                       })
                     : 'N/A'}
                 </p>
@@ -253,6 +254,7 @@ export default function ArtistDetailPage() {
                     ? new Date(artistWithCount.lastSeen).toLocaleDateString('en-US', {
                         month: 'short',
                         year: 'numeric',
+                        timeZone: 'UTC',
                       })
                     : 'N/A'}
                 </p>

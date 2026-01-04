@@ -66,6 +66,7 @@ export default function ConcertDetailPage() {
     year: 'numeric',
     month: 'long',
     day: 'numeric',
+    timeZone: 'UTC',
   });
 
   const media = mediaData?.data || [];
