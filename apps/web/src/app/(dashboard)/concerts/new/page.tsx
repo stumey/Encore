@@ -50,6 +50,7 @@ export default function NewConcertPage() {
   const [eventName, setEventName] = useState('');
   const [eventType, setEventType] = useState<EventType>('concert');
   const [notes, setNotes] = useState('');
+  const [festivalNameError, setFestivalNameError] = useState(false);
 
   // Search state
   const [artistSearchQuery, setArtistSearchQuery] = useState('');
@@ -152,6 +153,13 @@ export default function NewConcertPage() {
     if (!concertDate || selectedArtists.length === 0) {
       return;
     }
+
+    // Require festival name when eventType is 'festival'
+    if (eventType === 'festival' && !eventName.trim()) {
+      setFestivalNameError(true);
+      return;
+    }
+    setFestivalNameError(false);
 
     try {
       const concert = await createConcert.mutateAsync({
@@ -612,7 +620,10 @@ export default function NewConcertPage() {
                         name="eventType"
                         value="concert"
                         checked={eventType === 'concert'}
-                        onChange={(e) => setEventType(e.target.value as EventType)}
+                        onChange={(e) => {
+                          setEventType(e.target.value as EventType);
+                          setFestivalNameError(false);
+                        }}
                         className="h-4 w-4 border-gray-300 text-primary-600 focus:ring-primary-500"
                       />
                       <span className="text-sm text-gray-700 dark:text-gray-300">Concert</span>
@@ -634,12 +645,16 @@ export default function NewConcertPage() {
                 {/* Event Name - shown more prominently for festivals */}
                 <TextInput
                   value={eventName}
-                  onChange={(e) => setEventName(e.target.value)}
+                  onChange={(e) => {
+                    setEventName(e.target.value);
+                    if (festivalNameError) setFestivalNameError(false);
+                  }}
                   placeholder={eventType === 'festival' ? 'e.g., Bonnaroo 2024' : 'e.g., Special event name'}
-                  label={eventType === 'festival' ? 'Festival Name' : 'Event Name'}
+                  label={eventType === 'festival' ? 'Festival Name *' : 'Event Name'}
+                  error={festivalNameError ? 'Festival name is required' : undefined}
                   fullWidth
                 />
-                {eventType === 'festival' && !eventName && (
+                {eventType === 'festival' && !eventName && !festivalNameError && (
                   <p className="text-sm text-amber-600 dark:text-amber-400">
                     Adding a festival name helps identify this event in your concert history
                   </p>

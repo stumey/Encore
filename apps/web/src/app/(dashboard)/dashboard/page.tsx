@@ -70,6 +70,39 @@ export default function DashboardPage() {
     [dateFormatter]
   );
 
+  /**
+   * Format concert title for display
+   * - Uses eventName for festivals
+   * - Shows headliners first, limited to 3 artists with "+ X more" suffix
+   */
+  function formatConcertTitle(concert: typeof recentConcerts[number]): string {
+    if (concert.eventName) {
+      return concert.eventName;
+    }
+
+    const artists = concert.artists;
+    if (artists.length === 0) {
+      return 'Unknown Artist';
+    }
+
+    // Sort headliners first, then by setOrder
+    const sorted = [...artists].sort((a, b) => {
+      if (a.isHeadliner && !b.isHeadliner) return -1;
+      if (!a.isHeadliner && b.isHeadliner) return 1;
+      return (a.setOrder ?? 0) - (b.setOrder ?? 0);
+    });
+
+    const maxDisplay = 3;
+    const displayArtists = sorted.slice(0, maxDisplay);
+    const remaining = sorted.length - maxDisplay;
+
+    const names = displayArtists.map((ca) => ca.artist.name).join(', ');
+    if (remaining > 0) {
+      return `${names} + ${remaining} more`;
+    }
+    return names;
+  }
+
   // Memoize navigation handlers to prevent recreating on each render
   const handleUploadMedia = useCallback(
     () => router.push('/media/upload'),
@@ -298,8 +331,11 @@ export default function DashboardPage() {
                     <div className="flex-1">
                       <div className="flex items-center gap-3 mb-2">
                         <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                          {concert.artists.map((ca) => ca.artist.name).join(', ')}
+                          {formatConcertTitle(concert)}
                         </h3>
+                        {concert.eventType === 'festival' && (
+                          <Badge variant="info">Festival</Badge>
+                        )}
                         {concert._count && concert._count.media > 0 && (
                           <Badge variant="secondary">
                             {concert._count.media} photo{concert._count.media !== 1 ? 's' : ''}
