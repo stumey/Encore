@@ -33,8 +33,11 @@ export const ConcertCard: React.FC<ConcertCardProps> = ({ concert }) => {
       <Card style={styles.card}>
         <View style={styles.header}>
           <View style={styles.headerContent}>
+            {concert.eventType === 'festival' && (
+              <Badge text="Festival" variant="info" style={styles.festivalBadge} />
+            )}
             <Text style={[styles.artistName, { color: colors.text }]}>
-              {concert.artist?.name}
+              {concert.eventName || concert.artist?.name}
             </Text>
             <Text style={[styles.date, { color: colors.textSecondary }]}>
               {formatDate(concert.date)}
@@ -82,6 +85,10 @@ const styles = StyleSheet.create({
   headerContent: {
     flex: 1,
     marginRight: 12,
+  },
+  festivalBadge: {
+    alignSelf: 'flex-start',
+    marginBottom: 4,
   },
   artistName: {
     fontSize: 18,
