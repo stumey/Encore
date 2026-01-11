@@ -58,6 +58,15 @@ export function ConcertCard({ concert, className = '' }: ConcertCardProps) {
               </div>
             )}
 
+            {/* Festival badge overlay */}
+            {concert.eventType === 'festival' && (
+              <div className="absolute top-2 left-2">
+                <Badge variant="info" className="shadow-sm">
+                  Festival
+                </Badge>
+              </div>
+            )}
+
             {/* Badges overlay */}
             <div className="absolute top-2 right-2 flex flex-col gap-1.5">
               {concert.isVerified && (
@@ -75,6 +84,13 @@ export function ConcertCard({ concert, className = '' }: ConcertCardProps) {
 
           {/* Content */}
           <div className="p-4 space-y-3">
+            {/* Event Name (for festivals) */}
+            {concert.eventName && (
+              <h3 className="font-semibold text-lg text-gray-900 dark:text-white">
+                {concert.eventName}
+              </h3>
+            )}
+
             {/* Date */}
             <div className="flex items-center gap-2 text-sm text-gray-500">
               <svg

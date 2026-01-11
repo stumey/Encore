@@ -1,4 +1,4 @@
-import { MediaType, TicketSource, AnalysisStatus } from './enums';
+import { MediaType, TicketSource, AnalysisStatus, EventType } from './enums';
 
 export interface User {
   id: string;
@@ -41,6 +41,8 @@ export interface Concert {
   concertDate: Date | string;
   concertEndDate: Date | string | null;
   tourName: string | null;
+  eventName: string | null;
+  eventType: EventType;
   confidenceScore: number | null;
   notes: string | null;
   isVerified: boolean;

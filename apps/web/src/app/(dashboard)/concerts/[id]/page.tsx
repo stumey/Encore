@@ -112,8 +112,13 @@ export default function ConcertDetailPage() {
                 <div className="flex-1">
                   <div className="flex items-center gap-3 mb-2">
                     <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-                      {concert.artists[0]?.artist.name || 'Concert'}
+                      {concert.eventName || concert.artists[0]?.artist.name || 'Concert'}
                     </h1>
+                    {concert.eventType === 'festival' && (
+                      <Badge variant="info">
+                        Festival
+                      </Badge>
+                    )}
                     {concert.isVerified && (
                       <Badge variant="success" dot>
                         Verified

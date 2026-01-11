@@ -59,3 +59,10 @@ export const AnalysisStatus = {
 } as const;
 
 export type AnalysisStatus = (typeof AnalysisStatus)[keyof typeof AnalysisStatus];
+
+export const EventType = {
+  concert: 'concert',
+  festival: 'festival',
+} as const;
+
+export type EventType = (typeof EventType)[keyof typeof EventType];

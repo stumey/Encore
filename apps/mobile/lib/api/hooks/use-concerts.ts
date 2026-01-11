@@ -1,12 +1,16 @@
 import { useQuery, useMutation, useQueryClient, useInfiniteQuery } from '@tanstack/react-query';
 import { apiClient } from '../client';
 
+export type EventType = 'concert' | 'festival';
+
 export interface Concert {
   id: string;
   artistId: string;
   venueId: string;
   date: string;
   title?: string;
+  eventName?: string;
+  eventType: EventType;
   notes?: string;
   setlist?: string[];
   rating?: number;

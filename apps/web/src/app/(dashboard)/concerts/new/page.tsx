@@ -13,7 +13,7 @@ import { Badge } from '@/components/ui/badge';
 import { Spinner } from '@/components/ui/spinner';
 import { LineupIndicator } from '@/components/concerts/lineup-indicator';
 import { LineupSuggestionModal } from '@/components/concerts/lineup-suggestion-modal';
-import type { Artist, Venue } from '@encore/shared';
+import type { Artist, Venue, EventType } from '@encore/shared';
 
 interface SelectedArtist {
   artistId: string;
@@ -47,6 +47,8 @@ export default function NewConcertPage() {
   const [selectedArtists, setSelectedArtists] = useState<SelectedArtist[]>([]);
   const [selectedVenue, setSelectedVenue] = useState<Venue | null>(null);
   const [tourName, setTourName] = useState('');
+  const [eventName, setEventName] = useState('');
+  const [eventType, setEventType] = useState<EventType>('concert');
   const [notes, setNotes] = useState('');
 
   // Search state
@@ -157,6 +159,8 @@ export default function NewConcertPage() {
         concertEndDate: isMultiDay && concertEndDate ? new Date(concertEndDate) : undefined,
         venueId: selectedVenue?.id,
         tourName: tourName || undefined,
+        eventName: eventName || undefined,
+        eventType: eventType,
         notes: notes || undefined,
         artists: selectedArtists.map(a => ({
           artistId: a.artistId,
@@ -586,6 +590,61 @@ export default function NewConcertPage() {
                 placeholder="e.g., World Tour 2024"
                 fullWidth
               />
+            </CardContent>
+          </Card>
+
+          {/* Event Name & Type */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Event Details (Optional)</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {/* Event Type */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Event Type
+                  </label>
+                  <div className="flex gap-4">
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="radio"
+                        name="eventType"
+                        value="concert"
+                        checked={eventType === 'concert'}
+                        onChange={(e) => setEventType(e.target.value as EventType)}
+                        className="h-4 w-4 border-gray-300 text-primary-600 focus:ring-primary-500"
+                      />
+                      <span className="text-sm text-gray-700 dark:text-gray-300">Concert</span>
+                    </label>
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="radio"
+                        name="eventType"
+                        value="festival"
+                        checked={eventType === 'festival'}
+                        onChange={(e) => setEventType(e.target.value as EventType)}
+                        className="h-4 w-4 border-gray-300 text-primary-600 focus:ring-primary-500"
+                      />
+                      <span className="text-sm text-gray-700 dark:text-gray-300">Festival</span>
+                    </label>
+                  </div>
+                </div>
+
+                {/* Event Name - shown more prominently for festivals */}
+                <TextInput
+                  value={eventName}
+                  onChange={(e) => setEventName(e.target.value)}
+                  placeholder={eventType === 'festival' ? 'e.g., Bonnaroo 2024' : 'e.g., Special event name'}
+                  label={eventType === 'festival' ? 'Festival Name' : 'Event Name'}
+                  fullWidth
+                />
+                {eventType === 'festival' && !eventName && (
+                  <p className="text-sm text-amber-600 dark:text-amber-400">
+                    Adding a festival name helps identify this event in your concert history
+                  </p>
+                )}
+              </div>
             </CardContent>
           </Card>
 
