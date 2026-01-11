@@ -15,6 +15,8 @@ const concertBaseSchema = z.object({
     .optional(),
   venueId: z.string().uuid().optional(),
   tourName: z.string().optional(),
+  eventName: z.string().max(200).optional(),
+  eventType: z.enum(['concert', 'festival']).optional(),
   notes: z.string().optional(),
   artists: z
     .array(
