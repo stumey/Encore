@@ -255,7 +255,7 @@ export default function EditConcertPage() {
   };
 
   const handleLineupConfirm = async (
-    artists: Array<{ mbid: string; name: string; isHeadliner: boolean }>
+    artists: Array<{ mbid: string; name: string; isHeadliner: boolean; performanceDate: string | null }>
   ) => {
     await addSuggestedArtists.mutateAsync({ concertId, artists });
     setShowLineupModal(false);

@@ -92,10 +92,11 @@ model Concert {
 
 // Junction: Concert <-> Artists (headliners, openers)
 model ConcertArtist {
-  concertId   String  @map("concert_id")
-  artistId    String  @map("artist_id")
-  isHeadliner Boolean @default(false) @map("is_headliner")
-  setOrder    Int?    @map("set_order")
+  concertId       String    @map("concert_id")
+  artistId        String    @map("artist_id")
+  isHeadliner     Boolean   @default(false) @map("is_headliner")
+  setOrder        Int?      @map("set_order")
+  performanceDate DateTime? @map("performance_date")
 
   concert Concert @relation(fields: [concertId], references: [id], onDelete: Cascade)
   artist  Artist  @relation(fields: [artistId], references: [id], onDelete: Cascade)

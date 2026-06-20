@@ -11,7 +11,7 @@ interface LineupSuggestionModalProps {
   onClose: () => void;
   suggestedArtists: LineupArtist[];
   existingArtistMbids: (string | null)[]; // MBIDs of artists already on the concert
-  onConfirm: (selectedArtists: LineupArtist[]) => Promise<void>;
+  onConfirm: (selectedArtists: (LineupArtist & { performanceDate: string | null })[]) => Promise<void>;
   isLoading: boolean;
   eventDays?: EventDay[]; // Days with events (for multi-day filtering)
   isMultiDay?: boolean;
@@ -120,7 +120,11 @@ export function LineupSuggestionModal({
 
   const handleConfirm = async () => {
     const selected = availableArtists.filter((a) => selectedMbids.has(a.mbid));
-    await onConfirm(selected);
+    const resolved = selected.map((a) => {
+      const matchingDays = (a.performanceDates || []).filter((d) => selectedDays.has(d));
+      return { ...a, performanceDate: matchingDays.length === 1 ? matchingDays[0] : null };
+    });
+    await onConfirm(resolved);
   };
 
   // Don't show modal if no artists to suggest

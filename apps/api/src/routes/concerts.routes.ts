@@ -24,6 +24,7 @@ const concertBaseSchema = z.object({
         artistId: z.string().uuid(),
         isHeadliner: z.boolean().default(false),
         setOrder: z.number().optional(),
+        performanceDate: z.string().transform((s) => new Date(s)).nullish(),
       })
     )
     .optional(),
@@ -125,6 +126,7 @@ router.post(
                 artistId: a.artistId,
                 isHeadliner: a.isHeadliner,
                 setOrder: a.setOrder,
+                performanceDate: a.performanceDate ?? null,
               })),
             }
           : undefined,
@@ -200,6 +202,7 @@ router.post(
             artistId: z.string().uuid(),
             isHeadliner: z.boolean().default(false),
             setOrder: z.number().optional(),
+            performanceDate: z.string().transform((s) => new Date(s)).nullish(),
           })
         ),
       })
@@ -226,6 +229,7 @@ router.post(
         artistId: a.artistId,
         isHeadliner: a.isHeadliner,
         setOrder: a.setOrder ?? existingCount + i + 1,
+        performanceDate: a.performanceDate ?? null,
       })),
       skipDuplicates: true,
     });

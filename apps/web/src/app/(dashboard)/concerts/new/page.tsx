@@ -195,7 +195,7 @@ export default function NewConcertPage() {
     }
   };
 
-  const handleLineupConfirm = async (selectedLineupArtists: { mbid: string; name: string; isHeadliner: boolean }[]) => {
+  const handleLineupConfirm = async (selectedLineupArtists: { mbid: string; name: string; isHeadliner: boolean; performanceDate: string | null }[]) => {
     if (!createdConcertId || selectedLineupArtists.length === 0) {
       setShowLineupModal(false);
       router.push(`/concerts/${createdConcertId}`);
