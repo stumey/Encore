@@ -147,32 +147,48 @@ router.get(
       _count: { concertId: true },
     });
 
-    // Get full artist details and concert dates
-    const artistsWithDetails = await Promise.all(
-      artistStats.map(async (stat) => {
-        const [artist, concerts] = await Promise.all([
-          prisma.artist.findUnique({ where: { id: stat.artistId } }),
-          prisma.concert.findMany({
-            where: {
-              userId,
-              artists: { some: { artistId: stat.artistId } },
-            },
-            select: { concertDate: true },
-            orderBy: { concertDate: 'asc' },
-          }),
-        ]);
+    if (artistStats.length === 0) {
+      return res.json({ data: [] });
+    }
 
+    const artistIds = artistStats.map((s) => s.artistId);
+    const artistIdSet = new Set(artistIds);
+
+    // Batch: 2 queries instead of 2×N
+    const [artists, concerts] = await Promise.all([
+      prisma.artist.findMany({ where: { id: { in: artistIds } } }),
+      prisma.concert.findMany({
+        where: { userId, artists: { some: { artistId: { in: artistIds } } } },
+        select: { concertDate: true, artists: { select: { artistId: true } } },
+        orderBy: { concertDate: 'asc' },
+      }),
+    ]);
+
+    const artistMap = new Map(artists.map((a) => [a.id, a]));
+
+    // Group concert dates by artist (preserves asc order from query)
+    const concertsByArtist = new Map<string, Date[]>();
+    for (const concert of concerts) {
+      for (const ca of concert.artists) {
+        if (!artistIdSet.has(ca.artistId)) continue;
+        if (!concertsByArtist.has(ca.artistId)) {
+          concertsByArtist.set(ca.artistId, []);
+        }
+        concertsByArtist.get(ca.artistId)!.push(concert.concertDate);
+      }
+    }
+
+    const artistsWithDetails = artistStats
+      .map((stat) => {
+        const dates = concertsByArtist.get(stat.artistId) ?? [];
         return {
-          artist,
+          artist: artistMap.get(stat.artistId) ?? null,
           concertCount: stat._count.concertId,
-          firstSeen: concerts[0]?.concertDate ?? null,
-          lastSeen: concerts[concerts.length - 1]?.concertDate ?? null,
+          firstSeen: dates[0] ?? null,
+          lastSeen: dates[dates.length - 1] ?? null,
         };
       })
-    );
-
-    // Sort by concert count descending
-    artistsWithDetails.sort((a, b) => b.concertCount - a.concertCount);
+      .sort((a, b) => b.concertCount - a.concertCount);
 
     res.json({ data: artistsWithDetails });
   })
