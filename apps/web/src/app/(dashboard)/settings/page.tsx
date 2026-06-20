@@ -81,8 +81,7 @@ export default function ProfilePage() {
     }
   };
 
-  // TODO: Get from subscription status when implemented
-  const isPremium = false;
+  const isPremium = user?.isPremium ?? false;
   const currentPhotoCount = stats?.totalMedia ?? 0;
 
   if (userLoading) {
