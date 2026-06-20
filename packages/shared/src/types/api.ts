@@ -27,12 +27,18 @@ export interface ApiError {
 export interface UserProfile extends Pick<User, 'id' | 'username' | 'displayName' | 'email' | 'avatarUrl' | 'isPublic' | 'createdAt'> {}
 
 export interface UserStats {
-  totalConcerts: number;
+  totalConcerts: number; // all events (concerts + festivals)
+  totalFestivals: number; // festival events attended
+  uniqueFestivals: number; // distinct festival names
   uniqueArtists: number;
   uniqueVenues: number;
   totalMedia: number;
   mostSeenArtist: {
     artist: Pick<Artist, 'id' | 'name' | 'imageUrl'>;
+    count: number;
+  } | null;
+  mostAttendedFestival: {
+    name: string;
     count: number;
   } | null;
 }

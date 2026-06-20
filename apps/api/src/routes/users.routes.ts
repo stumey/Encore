@@ -85,8 +85,15 @@ router.get(
   asyncHandler(async (req, res) => {
     const userId = req.user!.userId;
 
-    const [totalConcerts, uniqueArtists, uniqueVenues, totalMedia] = await Promise.all([
+    const [totalConcerts, totalFestivals, uniqueFestivalNames, uniqueArtists, uniqueVenues, totalMedia] = await Promise.all([
+      // totalConcerts counts all events (concerts + festivals) for back-compat
       prisma.concert.count({ where: { userId } }),
+      prisma.concert.count({ where: { userId, eventType: 'festival' } }),
+      prisma.concert.findMany({
+        where: { userId, eventType: 'festival', eventName: { not: null } },
+        distinct: ['eventName'],
+        select: { eventName: true },
+      }),
       prisma.concertArtist.findMany({
         where: { concert: { userId } },
         distinct: ['artistId'],
@@ -121,13 +128,33 @@ router.get(
       };
     }
 
+    // Get most-attended festival (by festival name)
+    const topFestival = await prisma.concert.groupBy({
+      by: ['eventName'],
+      where: { userId, eventType: 'festival', eventName: { not: null } },
+      _count: { id: true },
+      orderBy: { _count: { id: 'desc' } },
+      take: 1,
+    });
+
+    let mostAttendedFestival = null;
+    if (topFestival.length > 0 && topFestival[0].eventName) {
+      mostAttendedFestival = {
+        name: topFestival[0].eventName,
+        count: topFestival[0]._count.id,
+      };
+    }
+
     res.json({
       data: {
         totalConcerts,
+        totalFestivals,
+        uniqueFestivals: uniqueFestivalNames.length,
         uniqueArtists: uniqueArtists.length,
         uniqueVenues: uniqueVenues.length,
         totalMedia,
         mostSeenArtist,
+        mostAttendedFestival,
       },
     });
   })
