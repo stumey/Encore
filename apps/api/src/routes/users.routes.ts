@@ -36,6 +36,7 @@ router.get(
         email: true,
         avatarUrl: true,
         isPublic: true,
+        isPremium: true,
         createdAt: true,
       },
     });
@@ -71,6 +72,7 @@ router.put(
         email: true,
         avatarUrl: true,
         isPublic: true,
+        isPremium: true,
       },
     });
     res.json({ data: user });

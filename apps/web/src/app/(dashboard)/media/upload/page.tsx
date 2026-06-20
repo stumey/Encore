@@ -4,7 +4,7 @@ import { useState, useCallback, useTransition, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useUploadUrl, useCreateMedia, useAnalyzeMedia } from '@/lib/api/hooks/use-media';
-import { useUserStats } from '@/lib/api/hooks/use-user';
+import { useCurrentUser, useUserStats } from '@/lib/api/hooks/use-user';
 import { UploadDropzone } from '@/components/media/upload-dropzone';
 import { UploadReview } from '@/components/media/upload-review';
 import { UploadSteps } from '@/components/media/upload-steps';
@@ -45,13 +45,13 @@ export default function MediaUploadPage() {
   const [showReview, setShowReview] = useState(false);
   const [uploadedMediaIds, setUploadedMediaIds] = useState<string[]>([]);
 
+  const { data: currentUser } = useCurrentUser();
   const { data: userStats } = useUserStats();
   const uploadUrlMutation = useUploadUrl();
   const createMediaMutation = useCreateMedia();
   const analyzeMediaMutation = useAnalyzeMedia();
 
-  // TODO: Get from user subscription status when implemented
-  const isPremium = false;
+  const isPremium = currentUser?.isPremium ?? false;
   const currentPhotoCount = userStats?.totalMedia ?? 0;
 
   /**

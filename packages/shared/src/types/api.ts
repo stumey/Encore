@@ -24,7 +24,7 @@ export interface ApiError {
 }
 
 // Expanded entity types with relations
-export interface UserProfile extends Pick<User, 'id' | 'username' | 'displayName' | 'email' | 'avatarUrl' | 'isPublic' | 'createdAt'> {}
+export interface UserProfile extends Pick<User, 'id' | 'username' | 'displayName' | 'email' | 'avatarUrl' | 'isPublic' | 'isPremium' | 'createdAt'> {}
 
 export interface UserStats {
   totalConcerts: number;
