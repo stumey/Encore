@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from '../client';
 import type {
@@ -30,10 +31,14 @@ const MEDIA_KEYS = {
 };
 
 /**
- * Get single media item with server-driven polling during analysis
+ * Get single media item with server-driven polling during analysis.
+ * When analysis completes (or fails), invalidates the gallery list so
+ * status badges update without the list needing its own polling loop.
  */
 export function useMediaItem(id: string | null) {
-  return useQuery({
+  const queryClient = useQueryClient();
+
+  const query = useQuery({
     queryKey: MEDIA_KEYS.detail(id || ''),
     queryFn: async () => {
       if (!id) return null;
@@ -46,13 +51,29 @@ export function useMediaItem(id: string | null) {
       return data?.retryAfter || false;
     },
   });
+
+  const status = query.data?.analysisStatus;
+  const prevStatusRef = useRef<string | undefined>(undefined);
+
+  useEffect(() => {
+    if (
+      prevStatusRef.current === 'processing' &&
+      (status === 'completed' || status === 'failed')
+    ) {
+      queryClient.invalidateQueries({ queryKey: MEDIA_KEYS.lists() });
+    }
+    prevStatusRef.current = status;
+  }, [status, queryClient]);
+
+  return query;
 }
 
 /**
  * Get paginated list of media
  * GET /media?page=1&limit=20&concertId=...&mediaType=...
  *
- * Automatically polls when items are being analyzed to get updated metadata
+ * No polling here — individual items poll via useMediaItem (UploadReview),
+ * which invalidates this list when analysis transitions to completed/failed.
  */
 export function useMedia(
   page: number = 1,
@@ -79,14 +100,7 @@ export function useMedia(
       );
       return response;
     },
-    // Poll every 3s while any items are being analyzed (to get updated metadata like takenAt)
-    refetchInterval: (query) => {
-      const data = query.state.data;
-      const hasProcessingItems = data?.data?.some(
-        (item) => item.analysisStatus === 'processing'
-      );
-      return hasProcessingItems ? 3000 : false;
-    },
+    staleTime: 30 * 1000,
   });
 }
 
