@@ -122,7 +122,13 @@ export function LineupSuggestionModal({
     const selected = availableArtists.filter((a) => selectedMbids.has(a.mbid));
     const resolved = selected.map((a) => {
       const matchingDays = (a.performanceDates || []).filter((d) => selectedDays.has(d));
-      return { ...a, performanceDate: matchingDays.length === 1 ? matchingDays[0] : null };
+      // Convert dd-MM-yyyy (setlist.fm format) to YYYY-MM-DD for DB storage
+      let performanceDate: string | null = null;
+      if (matchingDays.length === 1) {
+        const [dd, mm, yyyy] = matchingDays[0].split('-');
+        performanceDate = `${yyyy}-${mm}-${dd}`;
+      }
+      return { ...a, performanceDate };
     });
     await onConfirm(resolved);
   };

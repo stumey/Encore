@@ -257,7 +257,11 @@ export default function EditConcertPage() {
   const handleLineupConfirm = async (
     artists: Array<{ mbid: string; name: string; isHeadliner: boolean; performanceDate: string | null }>
   ) => {
-    await addSuggestedArtists.mutateAsync({ concertId, artists });
+    try {
+      await addSuggestedArtists.mutateAsync({ concertId, artists });
+    } catch (error) {
+      console.error('Failed to add suggested artists:', error);
+    }
     setShowLineupModal(false);
     router.push(`/concerts/${concertId}`);
   };
