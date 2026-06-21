@@ -226,7 +226,60 @@ export default function ConcertDetailPage() {
             <CardTitle>Artists</CardTitle>
           </CardHeader>
           <CardContent>
-            <ArtistChips artists={concert.artists} showHeadlinerBadge />
+            {(() => {
+              const hasDayData =
+                concert.eventType === 'festival' &&
+                concert.artists.some((a) => a.performanceDate != null);
+
+              if (!hasDayData) {
+                return <ArtistChips artists={concert.artists} showHeadlinerBadge />;
+              }
+
+              // Group by performanceDate, nulls last
+              const groups = new Map<string, typeof concert.artists>();
+              const ungrouped: typeof concert.artists = [];
+              for (const a of concert.artists) {
+                if (a.performanceDate == null) {
+                  ungrouped.push(a);
+                } else {
+                  const key = new Date(a.performanceDate).toISOString().split('T')[0];
+                  if (!groups.has(key)) groups.set(key, []);
+                  groups.get(key)!.push(a);
+                }
+              }
+              const sortedKeys = Array.from(groups.keys()).sort();
+
+              return (
+                <div className="space-y-4">
+                  {sortedKeys.map((key) => {
+                    const label = new Date(key).toLocaleDateString('en-US', {
+                      weekday: 'short',
+                      month: 'short',
+                      day: 'numeric',
+                      timeZone: 'UTC',
+                    });
+                    return (
+                      <div key={key}>
+                        <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">
+                          {label}
+                        </p>
+                        <ArtistChips artists={groups.get(key)!} showHeadlinerBadge />
+                      </div>
+                    );
+                  })}
+                  {ungrouped.length > 0 && (
+                    <div>
+                      {sortedKeys.length > 0 && (
+                        <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">
+                          Other
+                        </p>
+                      )}
+                      <ArtistChips artists={ungrouped} showHeadlinerBadge />
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
           </CardContent>
         </Card>
 

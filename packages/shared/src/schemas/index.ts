@@ -26,6 +26,7 @@ const concertBaseSchema = z.object({
         artistId: z.string().uuid(),
         isHeadliner: z.boolean().default(false),
         setOrder: z.number().optional(),
+        performanceDate: z.string().transform((s) => new Date(s)).nullish(),
       })
     )
     .optional(),

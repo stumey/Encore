@@ -54,6 +54,7 @@ export interface ConcertArtist {
   artistId: string;
   isHeadliner: boolean;
   setOrder: number | null;
+  performanceDate: Date | string | null;
 }
 
 export interface Media {

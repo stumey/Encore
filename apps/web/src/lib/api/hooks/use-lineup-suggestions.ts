@@ -58,7 +58,7 @@ export function useAddSuggestedArtists() {
       artists,
     }: {
       concertId: string;
-      artists: Array<{ mbid: string; name: string; isHeadliner: boolean }>;
+      artists: Array<{ mbid: string; name: string; isHeadliner: boolean; performanceDate?: string | null }>;
     }) => {
       // 1. Batch create/find artists by MBID
       const batchResponse = await apiClient.post<ApiResponse<Artist[]>>(
@@ -73,6 +73,7 @@ export function useAddSuggestedArtists() {
           artists: batchResponse.data.map((artist, i) => ({
             artistId: artist.id,
             isHeadliner: artists[i].isHeadliner,
+            performanceDate: artists[i].performanceDate ?? null,
           })),
         }
       );
