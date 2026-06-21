@@ -74,6 +74,22 @@ export default function StatsPage() {
   );
 
   /**
+   * Derive concert vs festival split.
+   * totalConcerts counts all events (concerts + festivals); subtract festivals
+   * to get the regular-concert count, then compute bar percentages.
+   */
+  const { regularConcerts, concertPercent, festivalPercent } = useMemo(() => {
+    const total = stats?.totalConcerts ?? 0;
+    const festivals = stats?.totalFestivals ?? 0;
+    const regular = Math.max(total - festivals, 0);
+    return {
+      regularConcerts: regular,
+      concertPercent: total > 0 ? (regular / total) * 100 : 0,
+      festivalPercent: total > 0 ? (festivals / total) * 100 : 0,
+    };
+  }, [stats?.totalConcerts, stats?.totalFestivals]);
+
+  /**
    * Format date to readable string using memoized Intl.DateTimeFormat
    */
   const dateFormatter = useMemo(
@@ -249,6 +265,7 @@ export default function StatsPage() {
           <TabsList>
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="artists">Artists</TabsTrigger>
+            <TabsTrigger value="festivals">Festivals</TabsTrigger>
             <TabsTrigger value="timeline">Timeline</TabsTrigger>
             <TabsTrigger value="venues">Venues</TabsTrigger>
           </TabsList>
@@ -378,6 +395,132 @@ export default function StatsPage() {
                 )}
               </CardContent>
             </Card>
+          </TabsContent>
+
+          {/* Festivals Tab */}
+          <TabsContent value="festivals">
+            <div className="space-y-6">
+              {/* Festival stat cards */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                <Card className="bg-gradient-to-br from-pink-50 to-pink-100 border-pink-200">
+                  <CardContent className="pt-6">
+                    <div className="text-center">
+                      <p className="text-4xl font-bold text-pink-900 mb-2">
+                        {stats?.totalFestivals || 0}
+                      </p>
+                      <p className="text-sm font-medium text-pink-700">Festivals Attended</p>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card className="bg-gradient-to-br from-purple-50 to-purple-100 border-purple-200">
+                  <CardContent className="pt-6">
+                    <div className="text-center">
+                      <p className="text-4xl font-bold text-purple-900 mb-2">
+                        {stats?.uniqueFestivals || 0}
+                      </p>
+                      <p className="text-sm font-medium text-purple-700">Unique Festivals</p>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card className="bg-gradient-to-br from-indigo-50 to-indigo-100 border-indigo-200">
+                  <CardContent className="pt-6">
+                    <div className="text-center">
+                      <p className="text-4xl font-bold text-indigo-900 mb-2">
+                        {regularConcerts}
+                      </p>
+                      <p className="text-sm font-medium text-indigo-700">Regular Concerts</p>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Most Attended Festival */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Most Attended Festival</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    {stats?.mostAttendedFestival ? (
+                      <div className="flex items-center gap-4">
+                        <div className="inline-flex items-center justify-center h-16 w-16 bg-pink-600 rounded-full shrink-0">
+                          <svg
+                            className="h-8 w-8 text-white"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"
+                            />
+                          </svg>
+                        </div>
+                        <div className="flex-1">
+                          <h3 className="text-xl font-bold text-gray-900">
+                            {stats.mostAttendedFestival.name}
+                          </h3>
+                          <p className="text-gray-600">
+                            {stats.mostAttendedFestival.count} time{stats.mostAttendedFestival.count !== 1 ? 's' : ''}
+                          </p>
+                        </div>
+                      </div>
+                    ) : (
+                      <EmptyState
+                        title="No festivals yet"
+                        description="Add festivals to see your most-attended one"
+                      />
+                    )}
+                  </CardContent>
+                </Card>
+
+                {/* Concert vs Festival Split */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Concerts vs Festivals</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    {(stats?.totalConcerts ?? 0) > 0 ? (
+                      <div className="space-y-4">
+                        <div>
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="text-sm font-medium text-gray-700">Regular Concerts</span>
+                            <span className="text-sm font-semibold text-gray-900">{regularConcerts}</span>
+                          </div>
+                          <div className="bg-gray-200 rounded-full h-3 overflow-hidden">
+                            <div
+                              className="bg-indigo-600 h-full rounded-full transition-all duration-300"
+                              style={{ width: `${concertPercent}%` }}
+                            />
+                          </div>
+                        </div>
+                        <div>
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="text-sm font-medium text-gray-700">Festivals</span>
+                            <span className="text-sm font-semibold text-gray-900">{stats?.totalFestivals || 0}</span>
+                          </div>
+                          <div className="bg-gray-200 rounded-full h-3 overflow-hidden">
+                            <div
+                              className="bg-pink-600 h-full rounded-full transition-all duration-300"
+                              style={{ width: `${festivalPercent}%` }}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    ) : (
+                      <EmptyState
+                        title="No data yet"
+                        description="Add concerts and festivals to see your split"
+                      />
+                    )}
+                  </CardContent>
+                </Card>
+              </div>
+            </div>
           </TabsContent>
 
           {/* Timeline Tab */}
