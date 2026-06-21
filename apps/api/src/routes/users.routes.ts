@@ -107,14 +107,23 @@ router.get(
       prisma.media.count({ where: { userId } }),
     ]);
 
-    // Get most-seen artist
-    const topArtist = await prisma.concertArtist.groupBy({
-      by: ['artistId'],
-      where: { concert: { userId } },
-      _count: { concertId: true },
-      orderBy: { _count: { concertId: 'desc' } },
-      take: 1,
-    });
+    // Get most-seen artist and most-attended festival (independent queries)
+    const [topArtist, topFestival] = await Promise.all([
+      prisma.concertArtist.groupBy({
+        by: ['artistId'],
+        where: { concert: { userId } },
+        _count: { concertId: true },
+        orderBy: { _count: { concertId: 'desc' } },
+        take: 1,
+      }),
+      prisma.concert.groupBy({
+        by: ['eventName'],
+        where: { userId, eventType: 'festival', eventName: { not: null } },
+        _count: { id: true },
+        orderBy: { _count: { id: 'desc' } },
+        take: 1,
+      }),
+    ]);
 
     let mostSeenArtist = null;
     if (topArtist.length > 0) {
@@ -127,15 +136,6 @@ router.get(
         count: topArtist[0]._count.concertId,
       };
     }
-
-    // Get most-attended festival (by festival name)
-    const topFestival = await prisma.concert.groupBy({
-      by: ['eventName'],
-      where: { userId, eventType: 'festival', eventName: { not: null } },
-      _count: { id: true },
-      orderBy: { _count: { id: 'desc' } },
-      take: 1,
-    });
 
     let mostAttendedFestival = null;
     if (topFestival.length > 0 && topFestival[0].eventName) {
